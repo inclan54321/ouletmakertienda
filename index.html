@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catálogo + Servicio al Cliente (Local)</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="language-selector">
+    <button id="langBtn" class="lang-btn">
+      <span id="langText">ES</span>
+      <span class="lang-dropdown hidden">
+        <a href="#" data-lang="es">Español</a>
+        <a href="#" data-lang="en">English</a>
+      </span>
+    </button>
+  </div>
+  <button id="homeBtn" class="home-btn" title="Inicio" aria-label="Inicio">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 3l9 8h-3v10h-5v-6H11v6H6V11H3l9-8z" fill="currentColor"/>
+    </svg>
+  </button>
+  <button id="favBtn" class="fav-btn" title="Favoritos" aria-label="Favoritos">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            fill="currentColor"/>
+    </svg>
+  </button>
+  <button id="cartBtn" class="cart-btn" title="Carrito" aria-label="Carrito">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M7.2 6h14.1c.6 0 1 .6.8 1.2l-1.6 6.4c-.2.5-.6.8-1.1.8H8.1L7.7 16h11.8v2H7
+               c-.6 0-1-.6-.8-1.2L7 13 5 4H2V2h4c.5 0 .9.3 1 .8L7.2 6zM7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10
+               0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2z"
+            fill="currentColor"/>
+    </svg>
+  </button>
+  <main class="container">
+    <section id="viewSplash" class="view">
+      <div class="splash-card">
+        <img id="splashImg" src="./assets/IMG01.jpeg" alt="IMG01" />
+        <p class="splash-text">Cargando...</p>
+        <button id="btnSplashContinue">Continuar</button>
+      </div>
+      <audio id="splashAudio" src="./assets/AUD01.mp3" preload="auto"></audio>
+    </section>
+    <section id="viewMenu" class="view hidden">
+      <div class="menu-card">
+        <img id="welcomeImg" src="./assets/piedra.png" alt="Bienvenido" />
+        <div class="menu-actions menu-grid">
+          <button id="btnAuction" class="menu-tile" type="button">
+            <span class="menu-tile__title">Subasta</span>
+          </button>
+          <button id="btnAbout" class="menu-tile" type="button">
+            <span class="menu-tile__title">Acerca de nosotros</span>
+          </button>
+          <button id="btnCatalog" class="menu-tile" type="button">
+            <span class="menu-tile__title">Catálogo</span>
+          </button>
+          <button id="btnChat" class="menu-tile" type="button">
+            <span class="menu-tile__title">Servicio al cliente</span>
+          </button>
+          <button id="btnWebDesign" class="menu-tile" type="button">
+            <span class="menu-tile__title">Creación y Diseño de páginas web</span>
+          </button>
+          <button id="btnMaker" class="menu-tile" type="button">
+            <span class="menu-tile__title">Zona maker</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <section id="viewAbout" class="view hidden">
+      <div class="catalog-wrap">
+        <div class="catalog-header">
+          <h2>Acerca de nosotros</h2>
+          <small>Conoce quiénes somos</small>
+        </div>
+        <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+          <div class="tile" style="padding:20px;">
+            <h3 style="margin:0 0 10px;">¿Quiénes somos?</h3>
+            <p style="margin:0; color:rgba(242,245,247,0.82); line-height:1.7;">
+              Somos un emprendimiento costarricense apasionado por ofrecer productos únicos,
+              servicios de calidad y soluciones digitales a nuestros clientes. Nos especializamos
+              en subastas, catálogo de productos, zona maker y diseño web.
+            </p>
+          </div>
+          <div class="tile" style="padding:20px;">
+            <h3 style="margin:0 0 10px;">🎯 Nuestra misión</h3>
+            <p style="margin:0; color:rgba(242,245,247,0.82); line-height:1.7;">
+              Brindar una experiencia de compra y servicio accesible, honesta y personalizada,
+              conectando a las personas con lo que necesitan de forma rápida y sencilla.
+            </p>
+          </div>
+          <div class="tile" style="padding:20px;">
+            <h3 style="margin:0 0 10px;">📍 ¿Dónde estamos?</h3>
+            <p style="margin:0; color:rgba(242,245,247,0.82); line-height:1.7;">
+              Costa Rica 🇨🇷 — Atendemos de forma digital y realizamos envíos a todo el país.
+            </p>
+          </div>
+          <div class="tile" style="padding:20px;">
+            <h3 style="margin:0 0 10px;">📞 Contáctanos</h3>
+            <p style="margin:0; color:rgba(242,245,247,0.82); line-height:1.7;">
+              ¿Tienes dudas o deseas más información? Visita nuestra sección de
+              <strong>Servicio al cliente</strong> desde el menú principal y con gusto te atendemos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+ 
+
+<section id="viewChat" class="view hidden">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <h2>Servicio al cliente</h2>
+          <small>Formulario de contacto</small>
+        </div>
+        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+        <div class="chat-input">
+          <input id="chatText" type="text" placeholder="Escribe tu mensaje..." />
+          <button id="chatSend" class="primary">Enviar</button>
+        </div>
+        <div class="chat-hint">
+          <span>Tip: envía: Nombre: ..., Número: ..., Artículo: ...</span>
+        </div>
+      </div>
+    </section>
+    <section id="viewIMC" class="view hidden">
+      <div class="imc-wrap">
+        <div class="imc-header">
+          <h2>IMC - Imagen de Fondo de Categoría</h2>
+          <small>Asigna una imagen de fondo a una categoría</small>
+        </div>
+        <div id="imcPanel" class="imc-panel"></div>
+      </div>
+    </section>
+    <section id="viewCatalog" class="view hidden">
+      <div class="catalog-wrap">
+        <div class="catalog-header">
+          <h2>Catálogo</h2>
+          <div class="catalog-breadcrumb" id="breadcrumb"></div>
+        </div>
+        <div id="categoriesPanel" class="panel"></div>
+        <div id="productsPanel" class="panel hidden"></div>
+        <div id="pagination" class="pagination hidden"></div>
+      </div>
+    </section>
+    <section id="viewAuction" class="view hidden">
+      <div class="catalog-wrap">
+        <div class="catalog-header">
+          <h2>Subasta</h2>
+          <div class="catalog-breadcrumb" id="auctionNote">3 productos · cambian cada día</div>
+        </div>
+        <div id="auctionPanel" class="panel"></div>
+      </div>
+    </section>
+    <section id="viewMaker" class="view hidden">
+      <div class="catalog-wrap">
+        <div class="catalog-header">
+          <h2>Zona Maker</h2>
+          <div class="catalog-breadcrumb" id="makerNote">Servicios y herramientas</div>
+        </div>
+        <div id="makerPanel" class="panel"></div>
+      </div>
+    </section>
+    <div id="modalBackdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modalTitle">Modal</h3>
+          <button id="modalClose" class="icon-btn" aria-label="Cerrar">✕</button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+        <div id="modalFooter" class="modal-footer"></div>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mostrar splash por defecto; menú sólo cuando presionas Continuar
+      var btnSplash = document.getElementById('btnSplashContinue');
+      btnSplash.addEventListener('click', function() {
+        document.getElementById('viewSplash').classList.add('hidden');
+        document.getElementById('viewMenu').classList.remove('hidden');
+      });
+      // Navegación del menú
+      document.getElementById('btnCatalog').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewCatalog').classList.remove('hidden');
+      });
+      document.getElementById('btnAuction').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewAuction').classList.remove('hidden');
+      });
+      document.getElementById('btnChat').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewChat').classList.remove('hidden');
+      });
+      document.getElementById('btnMaker').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewMaker').classList.remove('hidden');
+      });
+      document.getElementById('btnWebDesign').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewIMC').classList.remove('hidden');
+      });
+      document.getElementById('btnAbout').addEventListener('click', function() {
+        document.getElementById('viewMenu').classList.add('hidden');
+        document.getElementById('viewAbout').classList.remove('hidden');
+      });
+    });
+  </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Reproduce audio
+  var splashAudio = document.getElementById('splashAudio');
+  if (splashAudio) splashAudio.play();
+
+  // Mostrar el splash y ocultarlo después de 5 segundos
+  setTimeout(function() {
+    document.getElementById('viewSplash').classList.add('hidden');
+    document.getElementById('viewMenu').classList.remove('hidden');
+  }, 5000);
+
+  // Navegación del menú
+  document.getElementById('btnCatalog').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewCatalog').classList.remove('hidden');
+  });
+  document.getElementById('btnAuction').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewAuction').classList.remove('hidden');
+  });
+  document.getElementById('btnChat').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewChat').classList.remove('hidden');
+  });
+  document.getElementById('btnMaker').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewMaker').classList.remove('hidden');
+  });
+  document.getElementById('btnWebDesign').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewIMC').classList.remove('hidden');
+  });
+  document.getElementById('btnAbout').addEventListener('click', function() {
+    document.getElementById('viewMenu').classList.add('hidden');
+    document.getElementById('viewAbout').classList.remove('hidden');
+  });
+});
+</script>
+
+
+<div id="modalNovedades" class="novelties-modal hidden" role="dialog" aria-modal="true">
+  <div class="novelties-content">
+    <button class="close-btn" id="closeNovedades" aria-label="Cerrar novedades">✕</button>
+    <h2 class="novelties-title">Novedades</h2>
+<button class="arrow arrow-left" id="novedadPrev" aria-label="Anterior">&#8592;</button>
+<button class="arrow arrow-right" id="novedadNext" aria-label="Siguiente">&#8594;</button>
+<div class="novelty-info" id="novedadContenido"></div>
+  </div>
+</div>
+<div id="modalFavorito" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⭐ Guardar Favorito</h3>
+      <button id="closeFavModal" class="icon-btn" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="favFormWrap">
+        <label>Nombre<br>
+          <input id="favNombre" type="text" placeholder="Tu nombre" style="width:100%;margin-bottom:10px;" />
+        </label>
+        <label>Teléfono<br>
+          <input id="favTelefono" type="tel" placeholder="Número telefónico" style="width:100%;margin-bottom:10px;" />
+        </label>
+        <label>Categoría<br>
+          <select id="favCategoria" style="width:100%;margin-bottom:10px;">
+            <option value="">-- Selecciona categoría --</option>
+          </select>
+        </label>
+        <label>Subcategoría<br>
+          <select id="favSubcategoria" style="width:100%;margin-bottom:10px;">
+            <option value="">-- Selecciona subcategoría --</option>
+          </select>
+        </label>
+        <button id="favGuardar" class="primary" style="width:100%;">Guardar</button>
+      </div>
+      <div id="favValidarWrap" class="hidden" style="text-align:center;padding:20px;">
+        <p>📱 Este teléfono ya está registrado.</p>
+        <p>Ingresa tu código anterior para agregar este favorito:</p>
+        <input id="favCodigoInput" type="text" maxlength="5" placeholder="Ej: A3X9K" style="text-align:center;font-size:1.5rem;letter-spacing:6px;width:140px;" />
+        <br/><br/>
+        <button id="favValidarCodigo" class="primary">Validar</button>
+        <p id="favValidarError" style="color:red;display:none;">Código incorrecto. Intenta de nuevo.</p>
+      </div>
+
+      <div id="favCodigoWrap" class="hidden" style="text-align:center;padding:20px;">
+        <p>✅ ¡Favorito guardado!</p>
+        <p>Tu código es:</p>
+        <h2 id="favCodigo" style="font-size:2.5rem;letter-spacing:8px;color:#f0c040;"></h2>
+        <p style="font-size:0.85rem;opacity:0.7;">Guarda este código, lo necesitarás para eliminar este favorito.</p>
+        <button id="favCerrarCodigo" class="primary" style="margin-top:10px;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>
