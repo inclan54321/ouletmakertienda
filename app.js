@@ -2227,8 +2227,17 @@ function initFavoritos() {
 
   document.getElementById("favBtn").addEventListener("click", function () {
     llenarCategoriasEnFav();
+
+    // Reset UI para que no quede el validador pegado
     document.getElementById("favFormWrap").classList.remove("hidden");
+    document.getElementById("favValidarWrap").classList.add("hidden");
     document.getElementById("favCodigoWrap").classList.add("hidden");
+
+    var err = document.getElementById("favValidarError");
+    if (err) err.style.display = "none";
+    var codeInput = document.getElementById("favCodigoInput");
+    if (codeInput) codeInput.value = "";
+
     document.getElementById("favNombre").value = "";
     document.getElementById("favTelefono").value = "";
     document.getElementById("modalFavorito").classList.remove("hidden");
@@ -2236,6 +2245,15 @@ function initFavoritos() {
 
   document.getElementById("closeFavModal").addEventListener("click", function () {
     document.getElementById("modalFavorito").classList.add("hidden");
+
+    // Reset al cerrar (opcional)
+    document.getElementById("favFormWrap").classList.remove("hidden");
+    document.getElementById("favValidarWrap").classList.add("hidden");
+    document.getElementById("favCodigoWrap").classList.add("hidden");
+    var err = document.getElementById("favValidarError");
+    if (err) err.style.display = "none";
+    var codeInput = document.getElementById("favCodigoInput");
+    if (codeInput) codeInput.value = "";
   });
 
   document.getElementById("favCerrarCodigo").addEventListener("click", function () {
