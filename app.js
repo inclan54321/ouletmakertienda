@@ -2369,3 +2369,37 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+
+
+// === Mostrar botón de Novedades SOLO para Hogar y sin subcategoría ===
+document.addEventListener("DOMContentLoaded", function () {
+  const btnNovedades = document.getElementById("favOpenNovedades");
+  const selCat = document.getElementById("favCategoria");
+  const selSub = document.getElementById("favSubcategoria");
+
+  if (!btnNovedades || !selCat || !selSub) return;
+
+  function normalize(s) {
+    return String(s || "").trim().toLowerCase();
+  }
+
+  function updateNovedadesButtonVisibility() {
+    const catText = normalize(selCat.options[selCat.selectedIndex]?.text);
+    const catValue = normalize(selCat.value);
+
+    // aceptamos "hogar" tanto por texto visible como por value
+    const isHogar = catText === "hogar" || catValue === "hogar";
+
+    const subValue = normalize(selSub.value);
+    const noSubSelected = subValue === ""; // cuando está "-- Selecciona subcategoría --"
+
+    // visible solo si Hogar y subcategoría no seleccionada
+    btnNovedades.style.display = (isHogar && noSubSelected) ? "block" : "none";
+  }
+
+  // Ejecutar al cargar y al cambiar selects
+  updateNovedadesButtonVisibility();
+  selCat.addEventListener("change", updateNovedadesButtonVisibility);
+  selSub.addEventListener("change", updateNovedadesButtonVisibility);
+});
