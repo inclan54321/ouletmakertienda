@@ -175,41 +175,7 @@
       </div>
     </div>
   </main>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Mostrar splash por defecto; menú sólo cuando presionas Continuar
-      var btnSplash = document.getElementById('btnSplashContinue');
-      btnSplash.addEventListener('click', function() {
-        document.getElementById('viewSplash').classList.add('hidden');
-        document.getElementById('viewMenu').classList.remove('hidden');
-      });
-      // Navegación del menú
-      document.getElementById('btnCatalog').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewCatalog').classList.remove('hidden');
-      });
-      document.getElementById('btnAuction').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewAuction').classList.remove('hidden');
-      });
-      document.getElementById('btnChat').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewChat').classList.remove('hidden');
-      });
-      document.getElementById('btnMaker').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewMaker').classList.remove('hidden');
-      });
-      document.getElementById('btnWebDesign').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewIMC').classList.remove('hidden');
-      });
-      document.getElementById('btnAbout').addEventListener('click', function() {
-        document.getElementById('viewMenu').classList.add('hidden');
-        document.getElementById('viewAbout').classList.remove('hidden');
-      });
-    });
-  </script>
+
 
 
 
@@ -272,6 +238,21 @@
     </div>
   </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Intentar reproducir audio (puede ser bloqueado por el navegador)
+  var splashAudio = document.getElementById('splashAudio');
+  if (splashAudio) splashAudio.play().catch(function(){});
+
+  // Pasar al menú principal después de 5 segundos
+  setTimeout(function() {
+    var splash = document.getElementById('viewSplash');
+    var menu = document.getElementById('viewMenu');
+    if (splash) splash.classList.add('hidden');
+    if (menu) menu.classList.remove('hidden');
+  }, 5000);
+});
+</script>
 <script src="./app.js"></script>
 </body>
 </html>
