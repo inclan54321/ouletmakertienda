@@ -253,6 +253,24 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 5000);
 });
 </script>
+<!-- Modal: Captura de correo (desde Favoritos) -->
+<div id="modalCorreo" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📩 Acceso a novedades</h3>
+      <button id="closeCorreoModal" class="icon-btn" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Correo<br>
+        <input id="correoInput" type="email" placeholder="tu@correo.com" style="width:100%;margin-bottom:10px;" />
+      </label>
+
+      <button id="correoEnviar" class="primary" style="width:100%;">Enviar</button>
+      <p id="correoMsg" style="margin-top:10px;display:none;"></p>
+    </div>
+  </div>
+</div>
+
 <script src="./app.js"></script>
 </body>
 </html>

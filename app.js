@@ -2312,3 +2312,60 @@ function initFavoritos() {
 }
 
 document.addEventListener("DOMContentLoaded", initFavoritos);
+
+
+// === Modal correo (desde botón en favoritos) ===
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("favOpenNovedades");
+  const modal = document.getElementById("modalCorreo");
+  const close = document.getElementById("closeCorreoModal");
+  const input = document.getElementById("correoInput");
+  const send = document.getElementById("correoEnviar");
+  const msg = document.getElementById("correoMsg");
+
+  function openCorreoModal() {
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    if (msg) msg.style.display = "none";
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  function closeCorreoModal() {
+    if (!modal) return;
+    modal.classList.add("hidden");
+  }
+
+  btn?.addEventListener("click", function () {
+    openCorreoModal();
+  });
+
+  close?.addEventListener("click", closeCorreoModal);
+
+  // Cerrar al hacer click afuera (en el backdrop)
+  modal?.addEventListener("click", function (e) {
+    if (e.target === modal) closeCorreoModal();
+  });
+
+  send?.addEventListener("click", function () {
+    const email = (input?.value || "").trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!ok) {
+      if (msg) {
+        msg.textContent = "Por favor ingresa un correo válido.";
+        msg.style.display = "block";
+        msg.style.color = "red";
+      }
+      return;
+    }
+
+    if (msg) {
+      msg.textContent = "Correo recibido.";
+      msg.style.display = "block";
+      msg.style.color = "lime";
+    }
+  });
+});
