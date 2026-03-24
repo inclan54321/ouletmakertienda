@@ -210,45 +210,7 @@
       });
     });
   </script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Reproduce audio
-  var splashAudio = document.getElementById('splashAudio');
-  if (splashAudio) splashAudio.play();
 
-  // Mostrar el splash y ocultarlo después de 5 segundos
-  setTimeout(function() {
-    document.getElementById('viewSplash').classList.add('hidden');
-    document.getElementById('viewMenu').classList.remove('hidden');
-  }, 5000);
-
-  // Navegación del menú
-  document.getElementById('btnCatalog').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewCatalog').classList.remove('hidden');
-  });
-  document.getElementById('btnAuction').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewAuction').classList.remove('hidden');
-  });
-  document.getElementById('btnChat').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewChat').classList.remove('hidden');
-  });
-  document.getElementById('btnMaker').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewMaker').classList.remove('hidden');
-  });
-  document.getElementById('btnWebDesign').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewIMC').classList.remove('hidden');
-  });
-  document.getElementById('btnAbout').addEventListener('click', function() {
-    document.getElementById('viewMenu').classList.add('hidden');
-    document.getElementById('viewAbout').classList.remove('hidden');
-  });
-});
-</script>
 
 
 <div id="modalNovedades" class="novelties-modal hidden" role="dialog" aria-modal="true">
@@ -299,6 +261,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <p>✅ ¡Favorito guardado!</p>
         <p>Tu código es:</p>
         <h2 id="favCodigo" style="font-size:2.5rem;letter-spacing:8px;color:#f0c040;"></h2>
+
+        <button id="favOpenNovedades" class="primary" style="margin-top:12px;width:100%;">
+          Ingresa aquí si quieres acceder a las novedades
+        </button>
+
         <p style="font-size:0.85rem;opacity:0.7;">Guarda este código, lo necesitarás para eliminar este favorito.</p>
         <button id="favCerrarCodigo" class="primary" style="margin-top:10px;">Cerrar</button>
       </div>
