@@ -506,6 +506,19 @@ function updateCartBadge(){
 /* =========================
    DATA HELPERS
    ========================= */
+
+
+function telegramNotify(type, text) {
+  if (!type || !text) return Promise.resolve();
+
+  return fetch("/api/telegram-notify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, text })
+  }).catch(() => {});
+}
+
+
 function getForms() { return loadJSON(STORAGE_KEYS.customers, []); }
 function setForms(forms) { saveJSON(STORAGE_KEYS.customers, forms); }
 
@@ -1068,8 +1081,28 @@ const chatSendEl = document.querySelector("#chatSend");
 
 function saveServiceForm({ name, phone, subject }) {
   const forms = getForms();
-  forms.push({ id: crypto.randomUUID(), createdAt: nowTime(), name, phone, subject });
+
+  const entry = {
+    id: crypto.randomUUID(),
+    createdAt: nowTime(),
+    type: "customer_service",
+    name,
+    phone,
+    subject
+  };
+
+  forms.push(entry);
   setForms(forms);
+
+  // Aviso Telegram (no bloquea si falla)
+  telegramNotify(
+    "customer_service",
+    `Nuevo mensaje de servicio al cliente\n` +
+      `Nombre: ${name}\n` +
+      `Tel: ${phone}\n` +
+      `Asunto: ${subject}\n` +
+      `Fecha: ${entry.createdAt}`
+  );
 }
 
 function renderServiceForm() {
@@ -2444,3 +2477,30 @@ document.addEventListener("DOMContentLoaded", function () {
   selCat.addEventListener("change", updateNovedadesButtonVisibility);
   selSub.addEventListener("change", updateNovedadesButtonVisibility);
 });
+
+
+(function () {
+  const chatSend = document.getElementById("chatSend");
+  const chatText = document.getElementById("chatText");
+
+  if (chatSend && chatText) {
+    chatSend.addEventListener("click", async () => {
+      const text = (chatText.value || "").trim();
+      if (!text) return;
+
+      try {
+        const r = await fetch("/api/telegram-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "customer_service", text })
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || "Telegram error");
+
+        chatText.value = "";
+      } catch (e) {
+        alert("No se pudo enviar a Telegram: " + (e.message || e));
+      }
+    });
+  }
+})();
