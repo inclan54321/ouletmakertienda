@@ -2367,7 +2367,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.target === modal) closeCorreoModal();
   });
 
-  send?.addEventListener("click", function () {
+  send?.addEventListener("click", async function () {
     const email = (input?.value || "").trim();
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -2380,10 +2380,33 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (msg) {
-      msg.textContent = "Correo recibido.";
-      msg.style.display = "block";
-      msg.style.color = "lime";
+    try {
+      if (msg) {
+        msg.textContent = "Enviando...";
+        msg.style.display = "block";
+        msg.style.color = "white";
+      }
+
+      const r = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "Error enviando correo");
+
+      if (msg) {
+        msg.textContent = "Listo. Revisa tu correo.";
+        msg.style.display = "block";
+        msg.style.color = "lime";
+      }
+    } catch (e) {
+      if (msg) {
+        msg.textContent = "No se pudo enviar el correo: " + (e.message || "");
+        msg.style.display = "block";
+        msg.style.color = "red";
+      }
     }
   });
 });

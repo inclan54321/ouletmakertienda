@@ -4,5 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.4"
   }
 }
