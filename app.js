@@ -1848,7 +1848,7 @@ function openCartModal(){
     });
 
     document.querySelector("#buyCancel").addEventListener("click", closeModal);
-    document.querySelector("#buyConfirm").addEventListener("click", () => {
+    document.querySelector("#buyConfirm").addEventListener("click", async() => {
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
       const address = document.querySelector("#buyAddress").value.trim();
@@ -1859,8 +1859,35 @@ function openCartModal(){
       }
 
       const orders = loadJSON("buy_orders", []);
-      orders.push({ name, phone, address, date: new Date().toISOString(), cart: getCart() });
+      const cartNow = getCart();
+orders.push({ name, phone, address, date: new Date().toISOString(), cart: cartNow });
       saveJSON("buy_orders", orders);
+
+            const cartNow = getCart();
+
+      const itemsText = Array.isArray(cartNow) && cartNow.length
+        ? cartNow.map(it => `- ${it.productId} x${it.qty}`).join("\n")
+        : "(carrito vacío)";
+
+      const text =
+        `NUEVO PEDIDO\n` +
+        `Nombre: ${name}\n` +
+        `Teléfono: ${phone}\n` +
+        `Dirección: ${address}\n\n` +
+        `Items:\n${itemsText}`;
+
+      try {
+        const r = await fetch("/api/telegram-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "cart", text })
+        });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || "Telegram error");
+      } catch (e) {
+        alert("El pedido se guardó, pero NO se pudo enviar a Telegram: " + (e.message || e));
+        return;
+      }
 
       clearCart();
       closeModal();
