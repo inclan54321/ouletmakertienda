@@ -1,4 +1,5 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
@@ -77,6 +78,61 @@ http
           text: "Escríbenos aquí: https://t.me/InclanSoporteBot",
           html: '<p>Escríbenos aquí: <a href="https://t.me/InclanSoporteBot">https://t.me/InclanSoporteBot</a></p>'
         });
+
+        return sendJson(res, 200, { ok: true });
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message || "Server error" });
+      }
+    }
+
+    // ---- API: avisos a Telegram ----
+    if (req.method === "POST" && req.url === "/api/telegram-notify") {
+      try {
+        const token = process.env.TELEGRAM_BOT_TOKEN || "";
+        const chatId = process.env.TELEGRAM_CHAT_ID || "";
+
+        if (!token) return sendJson(res, 500, { ok: false, error: "TELEGRAM_BOT_TOKEN missing" });
+        if (!chatId) return sendJson(res, 500, { ok: false, error: "TELEGRAM_CHAT_ID missing" });
+
+        const body = await readJsonBody(req);
+        const type = String(body.type || "generic");
+        const text = String(body.text || "");
+
+        const msg =
+          type === "customer_service" ? `🛎️ Servicio al cliente:\n${text}` :
+          type === "cart" ? `🛒 Carrito:\n${text}` :
+          `📩 Mensaje:\n${text}`;
+
+        const payload = JSON.stringify({
+          chat_id: chatId,
+          text: msg
+        });
+
+        const r = await new Promise((resolve, reject) => {
+          const req2 = https.request(
+            {
+              method: "POST",
+              hostname: "api.telegram.org",
+              path: `/bot${token}/sendMessage`,
+              headers: {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(payload)
+              }
+            },
+            (resp) => {
+              let data = "";
+              resp.on("data", (c) => (data += c));
+              resp.on("end", () => resolve({ status: resp.statusCode || 0, data }));
+            }
+          );
+          req2.on("error", reject);
+          req2.write(payload);
+          req2.end();
+        });
+
+        if (r.status < 200 || r.status >= 300) {
+          return sendJson(res, 502, { ok: false, error: "Telegram send failed", details: r.data });
+        }
 
         return sendJson(res, 200, { ok: true });
       } catch (e) {
