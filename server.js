@@ -47,6 +47,17 @@ function readJsonBody(req) {
 
 http
   .createServer(async (req, res) => {
+
+    // ---- DEBUG: comprobar variables (no muestra la key completa) ----
+    if (req.method === "GET" && req.url === "/api/env-check") {
+      const key = process.env.SENDGRID_API_KEY || "";
+      return sendJson(res, 200, {
+        has_SENDGRID_API_KEY: Boolean(key),
+        SENDGRID_API_KEY_prefix: key ? key.slice(0, 6) + "..." : "",
+        has_SENDGRID_FROM_EMAIL: Boolean(process.env.SENDGRID_FROM_EMAIL || "")
+      });
+    }
+
     // ---- API: enviar correo al usuario ----
     if (req.method === "POST" && req.url === "/api/send-email") {
       try {
