@@ -1863,8 +1863,6 @@ function openCartModal(){
 orders.push({ name, phone, address, date: new Date().toISOString(), cart: cartNow });
       saveJSON("buy_orders", orders);
 
-            const cartNow = getCart();
-
       const itemsText = Array.isArray(cartNow) && cartNow.length
         ? cartNow.map(it => `- ${it.productId} x${it.qty}`).join("\n")
         : "(carrito vacío)";
