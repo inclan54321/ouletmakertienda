@@ -468,8 +468,13 @@ function openCatalogNoticeOncePerLoad() {
 /* =========================
    CARRITO
    ========================= */
-function getCart(){ return loadJSON(STORAGE_KEYS.cart, []); }
-function setCart(cart){ saveJSON(STORAGE_KEYS.cart, cart); updateCartBadge(); }
+function getCart(){ 
+  try { return JSON.parse(sessionStorage.getItem(STORAGE_KEYS.cart)) || []; } catch { return []; }
+}
+function setCart(cart){ 
+  sessionStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart)); 
+  updateCartBadge(); 
+}
 
 function addToCart(productId, qty = 1){
   const cart = getCart();
