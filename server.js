@@ -1,9 +1,15 @@
+
+require("dotenv").config();
+
 const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
 const sgMail = require("@sendgrid/mail");
+
+// ── Iniciar el bot ──────────────────────────────────
+require("./bot");
 
 const PORT = process.env.PORT || 8080;
 
@@ -12,6 +18,38 @@ const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 const SENDGRID_FROM_NAME = process.env.SENDGRID_FROM_NAME || "Outlet Maker Tienda";
 
 if (SENDGRID_API_KEY) sgMail.setApiKey(SENDGRID_API_KEY);
+
+// Productos en memoria (se cargan desde products.json si existe)
+const PRODUCTS_FILE = path.join(__dirname, "products.json");
+const CATEGORIES_FILE = path.join(__dirname, "categories.json");
+
+function loadCategories() {
+  try {
+    if (fs.existsSync(CATEGORIES_FILE)) {
+      return JSON.parse(fs.readFileSync(CATEGORIES_FILE, "utf8"));
+    }
+  } catch (e) {}
+  return [];
+}
+
+function loadProducts() {
+  try {
+    if (fs.existsSync(PRODUCTS_FILE)) {
+      return JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8"));
+    }
+  } catch (e) {
+    console.error("Error leyendo products.json:", e.message);
+  }
+  return [];
+}
+
+function saveProducts(products) {
+  try {
+    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), "utf8");
+  } catch (e) {
+    console.error("Error guardando products.json:", e.message);
+  }
+}
 
 const mime = {
   ".html": "text/html",
@@ -34,7 +72,7 @@ function readJsonBody(req) {
     let raw = "";
     req.on("data", (chunk) => {
       raw += chunk;
-      if (raw.length > 1_000_000) reject(new Error("Payload too large"));
+      if (raw.length > 10_000_000) reject(new Error("Payload too large"));
     });
     req.on("end", () => {
       try {
@@ -48,6 +86,8 @@ function readJsonBody(req) {
 
 http
   .createServer(async (req, res) => {
+
+    // ── ENV CHECK ───────────────────────────────────
     if (req.method === "GET" && req.url === "/api/env-check") {
       const key = process.env.SENDGRID_API_KEY || "";
       return sendJson(res, 200, {
@@ -55,10 +95,13 @@ http
         SENDGRID_API_KEY_prefix: key ? key.slice(0, 6) + "..." : "",
         has_SENDGRID_FROM_EMAIL: Boolean(process.env.SENDGRID_FROM_EMAIL || ""),
         has_TELEGRAM_BOT_TOKEN: Boolean(process.env.TELEGRAM_BOT_TOKEN || ""),
-        has_TELEGRAM_CHAT_ID: Boolean(process.env.TELEGRAM_CHAT_ID || "")
+        has_TELEGRAM_CHAT_ID: Boolean(process.env.TELEGRAM_CHAT_ID || ""),
+        has_TELEGRAM_BOT_C_TOKEN: Boolean(process.env["TELEGRAM_BOT-C_TOKEN"] || ""),
+        has_GEMINI_API_KEY: Boolean(process.env.GEMINI_API_KEY || "")
       });
     }
 
+    // ── SEND EMAIL ──────────────────────────────────
     if (req.method === "POST" && req.url === "/api/send-email") {
       try {
         if (!SENDGRID_API_KEY) return sendJson(res, 500, { ok: false, error: "SENDGRID_API_KEY missing" });
@@ -84,6 +127,7 @@ http
       }
     }
 
+    // ── TELEGRAM NOTIFY ─────────────────────────────
     if (req.method === "POST" && req.url === "/api/telegram-notify") {
       try {
         const token = process.env.TELEGRAM_BOT_TOKEN || "";
@@ -135,6 +179,75 @@ http
       }
     }
 
+
+    // ── SAVE CATEGORIES (sincronizar desde frontend) ─
+    if (req.method === "POST" && req.url === "/api/sync-categories") {
+      try {
+        const body = await readJsonBody(req);
+        const cats = Array.isArray(body.categories) ? body.categories : [];
+        fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(cats, null, 2), "utf8");
+        return sendJson(res, 200, { ok: true });
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    }
+
+    // ── GET PRODUCTS (para sincronizar con frontend) ─
+if (req.method === "GET" && req.url === "/api/products") {
+  const products = loadProducts();
+  return sendJson(res, 200, { ok: true, products });
+}
+
+    // ── BOT PUBLISH ─────────────────────────────────
+    if (req.method === "POST" && req.url === "/api/bot-publish") {
+      try {
+        const body = await readJsonBody(req);
+
+        const nombre = String(body.nombre || "").trim();
+        const precio = Number(body.precio);
+        const descripcion = String(body.descripcion || "").trim();
+        const categoria = String(body.categoria || "").trim();
+        const fotos = Array.isArray(body.fotos) ? body.fotos : [];
+
+        if (!nombre) return sendJson(res, 400, { ok: false, error: "nombre requerido" });
+        if (!Number.isFinite(precio) || precio <= 0) return sendJson(res, 400, { ok: false, error: "precio inválido" });
+        if (!categoria) return sendJson(res, 400, { ok: false, error: "categoria requerida" });
+
+        const products = loadProducts();
+        const cats = loadCategories();
+        const catMatch = cats.find(c =>
+          c.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+          categoria.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        );
+        const categoryId = catMatch ? catMatch.id : categoria;
+
+        const newProduct = {
+          id: crypto.randomUUID(),
+          categoryId: categoryId,
+          subcategoryId: null,
+          name: nombre,
+          price: precio,
+          gangaPrice: precio,
+          description: descripcion,
+          link: "",
+          photos: fotos.length ? fotos : ["./assets/IMG01.jpeg"],
+          created: new Date().toISOString(),
+          source: "bot"
+        };
+
+        products.push(newProduct);
+        saveProducts(products);
+
+        console.log(`✅ Producto publicado vía bot: ${nombre}`);
+        return sendJson(res, 200, { ok: true, id: newProduct.id });
+
+      } catch (e) {
+        console.error("Error en bot-publish:", e);
+        return sendJson(res, 500, { ok: false, error: e.message || "Server error" });
+      }
+    }
+
+    // ── STATIC FILES ────────────────────────────────
     const safeUrl = (req.url || "/").split("?")[0];
     let filePath = path.join(__dirname, safeUrl === "/" ? "index.html" : safeUrl);
     const ext = path.extname(filePath);

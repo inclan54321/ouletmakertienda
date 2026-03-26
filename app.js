@@ -111,30 +111,20 @@ function updateUILanguage() {
 }
 
 function seedIfEmpty() {
-  // Si el array de productos está vacío, agrega productos de ejemplo
-  const products = getProducts();
-  if (!products || !products.length) {
-    saveProducts([
-      {
-        id: "PRD001",
-        name: "Bocinas Bluetooth",
-        price: 43500,
-        description: "Bocinas potentes con bluetooth",
-        img: "assets/IMG01.jpeg",
-        category: "Audio",
-        created: new Date().toISOString()
-      },
-      {
-        id: "PRD002",
-        name: "Audífonos Pro",
-        price: 18500,
-        description: "Audífonos calidad superior",
-        img: "assets/IMG02.jpeg",
-        category: "Audio",
-        created: new Date().toISOString()
+  fetch("/api/products")
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && Array.isArray(data.products) && data.products.length) {
+        const local = getProducts();
+        const localIds = new Set(local.map(p => p.id));
+        const newOnes = data.products.filter(p => !localIds.has(p.id));
+        if (newOnes.length) {
+          saveProducts([...local, ...newOnes]);
+          console.log(`✅ ${newOnes.length} producto(s) nuevo(s) sincronizados desde el servidor`);
+        }
       }
-    ]);
-  }
+    })
+    .catch(e => console.warn("No se pudo sincronizar productos:", e.message));
 }
 
 
@@ -241,7 +231,17 @@ document.addEventListener("DOMContentLoaded", function() {
   // Inicializar carrusel de novedades al cargar
   renderNovedad(novedadIndex);
 
-  
+   // Sincronizar categorías al servidor
+  const catsToSync = getCategories();
+  if (catsToSync.length) {
+    fetch("/api/sync-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categories: catsToSync })
+    }).catch(() => {});
+  }
+
+  seedIfEmpty();
 
 });
 const AUCTION_COUNT = 3;
