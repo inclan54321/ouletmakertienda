@@ -109,6 +109,28 @@ http
 
         const body = await readJsonBody(req);
         const email = String(body.email || "").trim();
+        const categoria = String(body.categoria || "").trim().toLowerCase();
+        const enlacesPorCategoria = {
+  "estetica":       "https://t.me/+1iBBFkOvNfBlNjRh",
+  "oficina":        "https://t.me/+XTNkbFPPnMxlZTlh",
+  "computacion":    "https://t.me/+2DKnSvKnmlsyZGYx",
+  "electronica":    "https://t.me/+PuiCxP_kuHMwNTMx",
+  "agricultura":    "https://t.me/+KzdpKnY0MGI5",
+  "arte":           "https://t.me/+WRQ1Z_9Fwv1kMjIx",
+  "juego de mesa":  "https://t.me/+n20rNfhpK5EzMjZh",
+  "cocina":         "https://t.me/+T3A8VoJqwfVhNTI5",
+  "camping":        "https://t.me/+0QWrzAAfzSViZWIx",
+  "iluminacion":    "https://t.me/+W1ILm_UWFuo2NzMx",
+  "figuras":        "https://t.me/+RBuMVQj66rsyYzIx",
+  "herramientas":   "https://t.me/+5k7ZMWYO40ZmMjJh",
+  "musica":         "https://t.me/+_bT6YjcicTkyN2I5",
+  "peliculas":      "https://t.me/+N_zdJD6FDf8xYTEx",
+  "videojuegos":    "https://t.me/+PAfxm8Y3ttMxNjlh",
+  "mascotas":       "https://t.me/+ISecWwFy9Cg0ZTQx",
+  "hogar":          "https://t.me/+KSjDTiqhETNmNzkx"
+};
+const enlace = enlacesPorCategoria[categoria] || "https://t.me/+KSjDTiqhETNmNzkx";
+const nombreCat = categoria.charAt(0).toUpperCase() + categoria.slice(1);
         const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
         if (!ok) return sendJson(res, 400, { ok: false, error: "Invalid email" });
@@ -116,9 +138,9 @@ http
         await sgMail.send({
           to: email,
           from: { email: SENDGRID_FROM_EMAIL, name: SENDGRID_FROM_NAME },
-          subject: "Registro de novedades",
-          text: "Escríbenos aquí: https://t.me/InclanSoporteBot",
-          html: '<p>Escríbenos aquí: <a href="https://t.me/InclanSoporteBot">https://t.me/InclanSoporteBot</a></p>'
+          subject: `Novedades de ${nombreCat}`,
+          text: `Novedades de ${nombreCat}: ${enlace}`,
+          html: `<p>Novedades de <strong>${nombreCat}</strong>: <a href="${enlace}">${enlace}</a></p>`
         });
 
         return sendJson(res, 200, { ok: true });

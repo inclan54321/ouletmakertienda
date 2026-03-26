@@ -2453,7 +2453,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const r = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, categoria: selCat.options[selCat.selectedIndex]?.text || "" })
       });
 
       const data = await r.json().catch(() => ({}));
@@ -2499,7 +2499,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const noSubSelected = subValue === ""; // cuando está "-- Selecciona subcategoría --"
 
     // visible solo si Hogar y subcategoría no seleccionada
-    btnNovedades.style.display = (isHogar && noSubSelected) ? "block" : "none";
+    btnNovedades.style.display = (catValue !== "" && noSubSelected) ? "block" : "none";
   }
 
   // Ejecutar al cargar y al cambiar selects
