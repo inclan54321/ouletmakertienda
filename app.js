@@ -2444,18 +2444,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      if (msg) {
+           if (msg) {
         msg.textContent = "Enviando...";
         msg.style.display = "block";
         msg.style.color = "white";
       }
 
+      const selCat = document.getElementById("favCategoria");
       const r = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, categoria: selCat.options[selCat.selectedIndex]?.text || "" })
       });
-
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data.error || "Error enviando correo");
 
