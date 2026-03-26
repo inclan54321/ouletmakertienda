@@ -31,6 +31,26 @@ const CATEGORIAS = [
   "Mascotas", "Computacion", "Electronica"
 ];
 
+const GRUPOS_CATEGORIAS = {
+  "Herramientas":   "-1003721206046",
+  "Hogar":          "-4947912454",
+  "Cocina":         "-1003833669870",
+  "Figuras":        "-1003753511155",
+  "Estetica":       "-1003483354519",
+  "Peliculas":      "-1003703934986",
+  "Oficina":        "-1003298507187",
+  "Juegos de Mesa": "-1003874142104",
+  "Arte":           "-1003895501867",
+  "Camping":        "-1003829896170",
+  "Videojuegos":    "-1003721430042",
+  "Iluminacion":    "-1003898343727",
+  "Musica":         "-1003817435909",
+  "Agricultura":    "-1003437569403",
+  "Mascotas":       "-1003713638710",
+  "Computacion":    "-1003867450140",
+  "Electronica":    "-1003847817905"
+};
+
 function downloadImage(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith("https") ? https : http;
@@ -227,6 +247,19 @@ bot.onText(/\/confirmar/, async (msg) => {
     bot.sendMessage(chatId,
       `🎉 Producto publicado!\n\n📦 ${analisis.nombre}\n💰 ${formatCRC(analisis.precio)}\n📂 ${analisis.categoria}`
     );
+
+    // Enviar al grupo de la categoría
+    const grupoChatId = GRUPOS_CATEGORIAS[analisis.categoria];
+    if (grupoChatId) {
+      const msgGrupo =
+        `🆕 *Nuevo producto en ${analisis.categoria}*\n\n` +
+        `📦 *${analisis.nombre}*\n` +
+        `💰 ${formatCRC(analisis.precio)}\n` +
+        `📝 ${analisis.descripcion}`;
+
+      const imgBuffer = fondoBase64 ? Buffer.from(fondoBase64, "base64") : buffers[0];
+      await bot.sendPhoto(grupoChatId, imgBuffer, { caption: msgGrupo, parse_mode: "Markdown" });
+    }
 
   } catch (e) {
     console.error("Error publicando:", e);
