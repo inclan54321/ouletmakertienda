@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const https = require("https");
 const http = require("http");
 
-const TOKEN = process.env["TELEGRAM_BOT-C_TOKEN"];
+const TOKEN = process.env.TELEGRAM_BOT_C_TOKEN;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
