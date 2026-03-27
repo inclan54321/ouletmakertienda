@@ -1865,15 +1865,21 @@ function openCartModal(){
 
       const orders = loadJSON("buy_orders", []);
       const cartNow = getCart();
-orders.push({ name, phone, address, date: new Date().toISOString(), cart: cartNow });
+      const orderNumber = String(orders.length + 1).padStart(4, "0");
+      orders.push({ orderNumber, name, phone, address, date: new Date().toISOString(), cart: cartNow });
       saveJSON("buy_orders", orders);
 
+      const allProducts = getProducts();
       const itemsText = Array.isArray(cartNow) && cartNow.length
-        ? cartNow.map(it => `- ${it.productId} x${it.qty}`).join("\n")
+        ? cartNow.map(it => {
+            const prod = allProducts.find(p => p.id === it.productId);
+            const nombreProd = prod ? prod.name : it.productId;
+            return `- ${nombreProd} x${it.qty}`;
+          }).join("\n")
         : "(carrito vacío)";
 
       const text =
-        `NUEVO PEDIDO\n` +
+        `🛍️ PEDIDO #${orderNumber}\n` +
         `Nombre: ${name}\n` +
         `Teléfono: ${phone}\n` +
         `Dirección: ${address}\n\n` +
