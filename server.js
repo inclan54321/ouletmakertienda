@@ -105,6 +105,28 @@ http
     }
 
     // ── SEND EMAIL ──────────────────────────────────
+    if (req.method === "POST" && req.url === "/api/send-order-email") {
+      try {
+        if (!SENDGRID_API_KEY) return sendJson(res, 500, { ok: false, error: "SENDGRID_API_KEY missing" });
+        const body = await readJsonBody(req);
+        const email = String(body.email || "").trim();
+        const name = String(body.name || "").trim();
+        const orderNumber = String(body.orderNumber || "").trim();
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!ok) return sendJson(res, 400, { ok: false, error: "Invalid email" });
+        await sgMail.send({
+          to: email,
+          from: { email: SENDGRID_FROM_EMAIL, name: SENDGRID_FROM_NAME },
+          subject: `✅ Pedido #${orderNumber} confirmado`,
+          text: `Hola ${name}, tu pedido #${orderNumber} fue recibido.\n\nPuedes seguir tu pedido y contactarnos aquí:\nhttp://t.me/Ouletmascobot`,
+          html: `<p>Hola <strong>${name}</strong>, tu pedido <strong>#${orderNumber}</strong> fue recibido con éxito. 🎉</p><p>Puedes contactarnos y hacer seguimiento aquí:<br><a href="http://t.me/Ouletmascobot">http://t.me/Ouletmascobot</a></p>`
+        });
+        return sendJson(res, 200, { ok: true });
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: String(e.message || e) });
+      }
+    }
+
     if (req.method === "POST" && req.url === "/api/send-email") {
       try {
         if (!SENDGRID_API_KEY) return sendJson(res, 500, { ok: false, error: "SENDGRID_API_KEY missing" });

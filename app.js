@@ -1844,6 +1844,10 @@ function openCartModal(){
             <label style="display:block; margin-bottom:4px;">Dirección de envío</label>
             <input id="buyAddress" type="text" placeholder="Tu dirección de envío" style="width:100%;" />
           </div>
+          <div>
+            <label style="display:block; margin-bottom:4px;">Correo electrónico</label>
+            <input id="buyEmail" type="email" placeholder="Tu correo electrónico" style="width:100%;" />
+          </div>
         </div>
       `,
       footerHTML: `
@@ -1857,8 +1861,9 @@ function openCartModal(){
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
       const address = document.querySelector("#buyAddress").value.trim();
+      const email = document.querySelector("#buyEmail").value.trim();
 
-      if (!name || !phone || !address) {
+      if (!name || !phone || !address || !email) {
         alert("Por favor completa todos los campos.");
         return;
       }
@@ -1866,7 +1871,14 @@ function openCartModal(){
       const orders = loadJSON("buy_orders", []);
       const cartNow = getCart();
       const orderNumber = String(orders.length + 1).padStart(4, "0");
-      orders.push({ orderNumber, name, phone, address, date: new Date().toISOString(), cart: cartNow });
+      orders.push({ orderNumber, name, phone, address, email, date: new Date().toISOString(), cart: cartNow });
+
+      // Enviar correo al cliente con enlace del bot
+      fetch("/api/send-order-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name, orderNumber })
+      }).catch(() => {});
       saveJSON("buy_orders", orders);
 
       const allProducts = getProducts();
@@ -2252,22 +2264,17 @@ document.querySelector("#btnWebDesign")?.addEventListener("click", () => {
     alert("Pronto nos pondremos en contacto contigo. ¡Gracias!");
     closeModal();
   });
-// Aquí pegas el cierre del modal de novedades:
-  document.getElementById("closeNovedades")?.addEventListener("click", function(){
-    document.getElementById("modalNovedades").classList.add("hidden");
-  });
+});
 
 // --- MODAL NOVEDADES: cierre funcional ---
 const novedadesModal = document.getElementById("modalNovedades");
 const closeNovedadesBtn = document.getElementById("closeNovedades");
 
-if(novedadesModal && closeNovedadesBtn) {
-  closeNovedadesBtn.addEventListener("click", function(){
+if (novedadesModal && closeNovedadesBtn) {
+  closeNovedadesBtn.addEventListener("click", function () {
     novedadesModal.classList.add("hidden");
   });
 }
-
-});
 
 // ---- FAVORITOS ----
 
