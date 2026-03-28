@@ -12,7 +12,7 @@ const sgMail = require("@sendgrid/mail");
 require("./bot");
 const { registrarOrden } = require("./botVentas");
 
-const { registrarOrden } = require("./botVentas");
+
 
 const PORT = process.env.PORT || 8080;
 
