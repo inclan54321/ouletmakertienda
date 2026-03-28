@@ -1891,7 +1891,7 @@ function openCartModal(){
         : "(carrito vacío)";
 
      // DESPUÉS — esto es lo que debe quedar
-const ordenId = Date.now().toString();
+const ordenId = orderNumber;
 
 const text =
   `🛍️ PEDIDO #${orderNumber}\n` +
