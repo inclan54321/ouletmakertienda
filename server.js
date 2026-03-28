@@ -118,8 +118,8 @@ http
           to: email,
           from: { email: SENDGRID_FROM_EMAIL, name: SENDGRID_FROM_NAME },
           subject: `✅ Pedido #${orderNumber} confirmado`,
-          text: `Hola ${name}, tu pedido #${orderNumber} fue recibido.\n\nPuedes seguir tu pedido y contactarnos aquí:\nhttp://t.me/Ouletmascobot`,
-          html: `<p>Hola <strong>${name}</strong>, tu pedido <strong>#${orderNumber}</strong> fue recibido con éxito. 🎉</p><p>Puedes contactarnos y hacer seguimiento aquí:<br><a href="http://t.me/Ouletmascobot">http://t.me/Ouletmascobot</a></p>`
+          text: `Hola ${name}, tu pedido #${orderNumber} fue recibido.\n\nHacé clic aquí para contactarte con nosotros:\nhttps://t.me/Ouletmascobot?start=orden_${orderNumber}`,
+          html: `<p>Hola <strong>${name}</strong>, tu pedido <strong>#${orderNumber}</strong> fue recibido con éxito. 🎉</p><p>Hacé clic aquí para contactarte con nosotros:<br><a href="https://t.me/Ouletmascobot?start=orden_${orderNumber}">https://t.me/Ouletmascobot?start=orden_${orderNumber}</a></p>`
         });
         return sendJson(res, 200, { ok: true });
       } catch (e) {
