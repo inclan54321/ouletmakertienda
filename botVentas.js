@@ -1,15 +1,67 @@
 const TelegramBot = require("node-telegram-bot-api");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const https = require("https");
+const http = require("http");
 
 const TOKEN = process.env.TELEGRAM_BOT_VENTAS_TOKEN;
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
 const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 if (!TOKEN) { console.error("❌ TELEGRAM_BOT_VENTAS_TOKEN no definido"); process.exit(1); }
-if (!GEMINI_KEY) { console.error("❌ GEMINI_API_KEY no definido"); process.exit(1); }
+if (!DEEPSEEK_KEY) { console.error("❌ DEEPSEEK_API_KEY no definido"); process.exit(1); }
 
 const botVentas = new TelegramBot(TOKEN, { polling: true });
-const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+
+async function obtenerTerminos() {
+  return new Promise((resolve) => {
+    const req = http.request({
+      hostname: "localhost",
+      port: process.env.PORT || 8080,
+      path: "/api/terminos",
+      method: "GET"
+    }, (res) => {
+      let data = "";
+      res.on("data", c => data += c);
+      res.on("end", () => {
+        try { resolve(JSON.parse(data)); }
+        catch { resolve({}); }
+      });
+    });
+    req.on("error", () => resolve({}));
+    req.end();
+  });
+}
+
+async function preguntarDeepSeek(prompt) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: "deepseek-chat",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 500
+    });
+    const req = https.request({
+      hostname: "api.deepseek.com",
+      path: "/v1/chat/completions",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${DEEPSEEK_KEY}`,
+        "Content-Length": Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = "";
+      res.on("data", c => data += c);
+      res.on("end", () => {
+        try {
+          const j = JSON.parse(data);
+          resolve(j.choices[0].message.content.trim());
+        } catch { reject(new Error("Error parseando respuesta DeepSeek")); }
+      });
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 // { ordenId: { clienteChatId, modo, contextoExtra, historial[], ordenData } }
 const conversaciones = {};
@@ -220,10 +272,19 @@ botVentas.on("message", async (msg) => {
   // IA responde
   try {
     const orden = ordenesCache[ordenId] || {};
+    const terminos = await obtenerTerminos();
+
+    const terminosTexto = `
+ENVÍOS: ${terminos.envios?.empresa}. Costo fijo: ₡${terminos.envios?.costo}. ${terminos.envios?.tiempo}. Número de guía se envía al correo del cliente. No se hacen entregas personales.
+DEVOLUCIONES: Plazo de ${terminos.devoluciones?.plazo}. Métodos: ${terminos.devoluciones?.metodos?.join(" / ")}.
+GARANTÍA: ${terminos.garantia?.dias} días. Métodos: ${terminos.garantia?.metodos?.join(" / ")}.
+PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${terminos.pagos?.nombre}.
+    `.trim();
 
     const prompt =
       `Sos un asesor de ventas de Outlet Maker, una tienda en Costa Rica.\n` +
       `Sos amable, directo y profesional. Respondés en español.\n\n` +
+      `TÉRMINOS DE SERVICIO (usá esto para tomar decisiones):\n${terminosTexto}\n\n` +
       `Información del pedido:\n` +
       `- Cliente: ${orden.nombre || "cliente"}\n` +
       `- Teléfono: ${orden.telefono || ""}\n` +
@@ -235,9 +296,7 @@ botVentas.on("message", async (msg) => {
       `${conv.historial.map(h => `${h.rol === "cliente" ? "Cliente" : "Asesor"}: ${h.texto}`).join("\n")}\n\n` +
       `Respondé SOLO el próximo mensaje del asesor, sin etiquetas ni explicaciones.`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(prompt);
-    const respuesta = result.response.text().trim();
+    const respuesta = await preguntarDeepSeek(prompt);
 
     await botVentas.sendMessage(clienteChatId, respuesta);
     conv.historial.push({ rol: "ia", texto: respuesta });

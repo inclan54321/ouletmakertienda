@@ -1,0 +1,30 @@
+{
+  "envios": {
+    "empresa": "Correos de Costa Rica o Dual (según peso y volumen)",
+    "costo": 3700,
+    "moneda": "CRC",
+    "tiempo": "El envío se realiza el siguiente día hábil después de la compra",
+    "rastreo": "El número de guía se envía al correo electrónico registrado en el carrito",
+    "entregaPersonal": false
+  },
+  "devoluciones": {
+    "aceptadas": true,
+    "plazo": "7 días a partir de la compra",
+    "metodos": [
+      "Envío por Correos de Costa Rica a la dirección del negocio en San Juan Sur de Poas",
+      "Entrega personal los domingos a las 2pm en San José Centro, Plaza de la Cultura"
+    ]
+  },
+  "garantia": {
+    "dias": 30,
+    "metodos": [
+      "Envío por Correos de Costa Rica a la dirección del negocio en San Juan Sur de Poas",
+      "Entrega personal los domingos a las 2pm en San José Centro, Plaza de la Cultura"
+    ]
+  },
+  "pagos": {
+    "metodo": "SINPE Móvil",
+    "numero": "87295743",
+    "nombre": "Marlon Inclan"
+  }
+}

@@ -105,6 +105,30 @@ http
     }
 
     // ── SEND EMAIL ──────────────────────────────────
+    if (req.method === "GET" && req.url === "/api/terminos") {
+      try {
+        const fs = require("fs");
+        const terminos = fs.readFileSync("./terminos.json", "utf8");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(terminos);
+        return;
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: "No se pudo leer terminos.json" });
+      }
+    }
+
+    if (req.method === "GET" && req.url === "/api/terminos") {
+      try {
+        const fs = require("fs");
+        const terminos = fs.readFileSync("./terminos.json", "utf8");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(terminos);
+        return;
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: "No se pudo leer terminos.json" });
+      }
+    }
+
     if (req.method === "POST" && req.url === "/api/send-order-email") {
       try {
         if (!SENDGRID_API_KEY) return sendJson(res, 500, { ok: false, error: "SENDGRID_API_KEY missing" });
