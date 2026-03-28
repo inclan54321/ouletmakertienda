@@ -161,10 +161,13 @@ botVentas.onText(/\/msg (.+)/s, async (msg, match) => {
   if (String(msg.chat.id) !== String(ADMIN_CHAT_ID)) return;
   const texto = match[1];
 
+  // DEBUG temporal
+  console.log("conversaciones al usar /msg:", JSON.stringify(conversaciones));
+
   const ordenId = Object.keys(conversaciones).find(
-    id => conversaciones[id] !== undefined
+    id => conversaciones[id] && conversaciones[id].clienteChatId
   );
-  if (!ordenId) return botVentas.sendMessage(msg.chat.id, "⚠️ No hay orden activa.");
+  if (!ordenId) return botVentas.sendMessage(msg.chat.id, "⚠️ No hay orden activa o el cliente aún no abrió el bot.");
 
   const conv = conversaciones[ordenId];
   if (!conv.clienteChatId) return botVentas.sendMessage(msg.chat.id,
