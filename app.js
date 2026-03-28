@@ -1878,19 +1878,39 @@ function openCartModal(){
           }).join("\n")
         : "(carrito vacío)";
 
-      const text =
-        `🛍️ PEDIDO #${orderNumber}\n` +
-        `Nombre: ${name}\n` +
-        `Teléfono: ${phone}\n` +
-        `Dirección: ${address}\n\n` +
-        `Items:\n${itemsText}`;
+     // DESPUÉS — esto es lo que debe quedar
+const ordenId = Date.now().toString();
 
-      try {
-        const r = await fetch("/api/telegram-notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "cart", text })
-        });
+const text =
+  `🛍️ PEDIDO #${orderNumber}\n` +
+  `Nombre: ${name}\n` +
+  `Teléfono: ${phone}\n` +
+  `Dirección: ${address}\n\n` +
+  `Items:\n${itemsText}`;
+
+try {
+  const r = await fetch("/api/telegram-notify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: "cart",
+      text,
+      ordenId,
+      clienteData: {
+        nombre: name,
+        telefono: phone,
+        direccion: address,
+        productos: cartNow.map(it => ({
+          name: allProducts.find(p => p.id === it.productId)?.name || it.productId,
+          qty: it.qty
+        })),
+        total: cartNow.reduce((acc, it) => {
+          const p = allProducts.find(pr => pr.id === it.productId);
+          return acc + ((p?.price || 0) * it.qty);
+        }, 0)
+      }
+    })
+  });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || "Telegram error");
       } catch (e) {

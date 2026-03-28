@@ -11,6 +11,8 @@ const sgMail = require("@sendgrid/mail");
 // ── Iniciar el bot ──────────────────────────────────
 require("./bot");
 
+const { registrarOrden } = require("./botVentas");
+
 const PORT = process.env.PORT || 8080;
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
@@ -161,10 +163,14 @@ const nombreCat = categoria.charAt(0).toUpperCase() + categoria.slice(1);
         const body = await readJsonBody(req);
         const type = String(body.type || "generic");
         const text = String(body.text || "");
+        const ordenId = body.ordenId || Date.now().toString(); // <- línea nueva
+        if (type === "cart" && body.clienteData) {             // <- línea nueva
+          registrarOrden(ordenId, body.clienteData);           // <- línea nueva
+        }                                                      // <- línea nueva
 
         const msg =
           type === "customer_service" ? `Servicio al cliente:\n${text}` :
-          type === "cart" ? `Carrito:\n${text}` :
+          type === "cart" ? `🛒 Nuevo Pedido #${ordenId}\n\n${text}\n\n👇 Atender cliente con IA →\nt.me/"@Ouletmascobot"?start=orden_${ordenId}` :
           `Mensaje:\n${text}`;
 
         const payload = JSON.stringify({ chat_id: chatId, text: msg });
