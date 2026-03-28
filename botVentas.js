@@ -35,6 +35,12 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const ordenId = match[1];
 
+  // TEMPORAL - borrar después
+  console.log("chatId que llegó:", chatId);
+  console.log("ADMIN_CHAT_ID:", ADMIN_CHAT_ID);
+  console.log("¿Son iguales?:", String(chatId) === String(ADMIN_CHAT_ID));
+  console.log("ordenesCache:", JSON.stringify(ordenesCache));
+
   // Si es el admin
   if (String(chatId) === String(ADMIN_CHAT_ID)) {
     if (!conversaciones[ordenId]) conversaciones[ordenId] = {

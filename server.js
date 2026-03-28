@@ -10,6 +10,7 @@ const sgMail = require("@sendgrid/mail");
 
 // ── Iniciar el bot ──────────────────────────────────
 require("./bot");
+const { registrarOrden } = require("./botVentas");
 
 const { registrarOrden } = require("./botVentas");
 
@@ -170,7 +171,7 @@ const nombreCat = categoria.charAt(0).toUpperCase() + categoria.slice(1);
 
         const msg =
           type === "customer_service" ? `Servicio al cliente:\n${text}` :
-          type === "cart" ? `🛒 Nuevo Pedido #${ordenId}\n\n${text}\n\n👇 Atender cliente con IA →\nt.me/"@Ouletmascobot"?start=orden_${ordenId}` :
+          type === "cart" ? `🛒 Nuevo Pedido #${ordenId}\n\n${text}\n\n👇 Atender cliente con IA →\nt.me/Ouletmascobot?start=orden_${ordenId}` :
           `Mensaje:\n${text}`;
 
         const payload = JSON.stringify({ chat_id: chatId, text: msg });
