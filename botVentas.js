@@ -274,6 +274,8 @@ botVentas.on("message", async (msg) => {
 
   // IA responde
   try {
+    console.log("ordenId buscado:", ordenId);
+    console.log("ordenesCache completo:", JSON.stringify(ordenesCache));
     const orden = ordenesCache[ordenId] || {};
     const terminos = await obtenerTerminos();
 
