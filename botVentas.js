@@ -122,11 +122,18 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
     );
   }
 
-  // Si es el cliente
+   // Si es el cliente — verificar si el enlace fue bloqueado
+  if (ordenesCache[ordenId]?.bloqueado) {
+    return botVentas.sendMessage(chatId,
+      "🚫 Este enlace ya no está disponible. Contáctanos por otro medio."
+    );
+  }
+
   if (!conversaciones[ordenId]) conversaciones[ordenId] = {
     modo: "esperando",
     historial: [],
-    contextoExtra: ""
+    contextoExtra: "",
+    salidasTema: 0
   };
 
   conversaciones[ordenId].clienteChatId = chatId;
@@ -299,9 +306,44 @@ PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${term
       `Estado real de los productos:\n${conv.contextoExtra || "Sin detalles adicionales"}\n\n` +
       `Historial:\n` +
       `${conv.historial.map(h => `${h.rol === "cliente" ? "Cliente" : "Asesor"}: ${h.texto}`).join("\n")}\n\n` +
+      `REGLAS DE COMPORTAMIENTO:\n` +
+      `- El cliente ha salido del tema ${conv.salidasTema} veces.\n` +
+      `- Si el cliente se sale del tema de la compra:\n` +
+      `  * 1ra vez (salidasTema llegará a 1): pedile amablemente que no cambie de tema.\n` +
+      `  * 2da vez (salidasTema llegará a 2): advertile que el chat se cerrará si lo hace de nuevo.\n` +
+      `  * 3ra vez (salidasTema llegará a 3): respondé EXACTAMENTE con la palabra CERRAR_CHAT y nada más.\n` +
+      `- Si el cliente está hablando del pedido, respondé normal.\n\n` +
       `Respondé SOLO el próximo mensaje del asesor, sin etiquetas ni explicaciones.`;
 
     const respuesta = await preguntarDeepSeek(prompt);
+
+    // Incrementar contador si la IA detectó salida de tema
+    if (respuesta.trim() === "CERRAR_CHAT" || conv.salidasTema < 3 && (
+      respuesta.includes("te pido") || respuesta.includes("advertimos") || respuesta.includes("cerrará")
+    )) {
+      conv.salidasTema = (conv.salidasTema || 0) + 1;
+    }
+
+    if (respuesta.trim() === "CERRAR_CHAT") {
+      // Bloquear enlace
+      if (ordenesCache[ordenId]) ordenesCache[ordenId].bloqueado = true;
+
+      // Avisar al cliente
+      await botVentas.sendMessage(clienteChatId,
+        "🚫 Este chat ha sido cerrado porque te saliste del tema de la compra en varias ocasiones.\n" +
+        "El enlace de tu pedido ya no está disponible. Contáctanos por otro medio."
+      );
+
+      // Notificar al admin
+      botVentas.sendMessage(ADMIN_CHAT_ID,
+        `🚫 *Chat cerrado automáticamente*\n` +
+        `Orden #${ordenId} fue cerrada porque el cliente se salió del tema 3 veces.`,
+        { parse_mode: "Markdown" }
+      );
+
+      delete conversaciones[ordenId];
+      return;
+    }
 
     await botVentas.sendMessage(clienteChatId, respuesta);
     conv.historial.push({ rol: "ia", texto: respuesta });
