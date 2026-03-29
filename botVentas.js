@@ -66,6 +66,8 @@ async function preguntarDeepSeek(prompt) {
 // { ordenId: { clienteChatId, modo, contextoExtra, historial[], ordenData } }
 const conversaciones = {};
 const ordenesCache = {};   // { ordenId: ordenData }
+const filaEspera = [];     // [{ ordenId, chatId }]
+const MAX_FILA = 12;
 
 // ── Utilidad ───────────────────────────────────────────────
 
@@ -129,6 +131,46 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
     );
   }
 
+  // Verificar si ya hay una conversación activa con otro cliente
+  const hayConversacionActiva = Object.values(conversaciones).some(
+    c => c.clienteChatId && c.modo !== "esperando"
+  );
+
+  if (hayConversacionActiva) {
+    // Verificar si ya está en la fila
+    const yaEnFila = filaEspera.find(f => f.ordenId === ordenId);
+    if (yaEnFila) {
+      const pos = filaEspera.findIndex(f => f.ordenId === ordenId) + 1;
+      return botVentas.sendMessage(chatId,
+        `⏳ Ya estás en la fila, tu posición actual es *#${pos}*.\n` +
+        `Por favor seguí esperando, te atenderemos muy pronto. 🙏`,
+        { parse_mode: "Markdown" }
+      );
+    }
+
+    // Verificar límite de fila
+    if (filaEspera.length >= MAX_FILA) {
+      return botVentas.sendMessage(chatId,
+        "😔 Lo sentimos, en este momento no podemos atenderte.\n" +
+        "Por favor intentá más tarde. 🙏"
+      );
+    }
+
+    // Agregar a la fila
+    filaEspera.push({ ordenId, chatId });
+    const pos = filaEspera.length;
+    const otros = pos === 1 ? "1 persona esperando" : `${pos} personas esperando`;
+
+    return botVentas.sendMessage(chatId,
+      `👋 ¡Hola! Gracias por tu compra en *Outlet Maker*.\n\n` +
+      `🕐 En este momento estamos atendiendo a otro cliente.\n` +
+      `📋 Hay *${otros}* antes que vos, incluyéndote a vos.\n\n` +
+      `Te avisaremos en cuanto sea tu turno. ¡Gracias por tu paciencia! 🙏`,
+      { parse_mode: "Markdown" }
+    );
+  }
+
+  // No hay conversación activa — atender directamente
   if (!conversaciones[ordenId]) conversaciones[ordenId] = {
     modo: "esperando",
     historial: [],
@@ -139,8 +181,8 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
   conversaciones[ordenId].clienteChatId = chatId;
 
   botVentas.sendMessage(chatId,
-    "👋 Hola! Gracias por tu compra en *Outlet Maker*.\n" +
-    "En breve un asesor te va a contactar. 🙌",
+    "👋 ¡Hola! Gracias por tu compra en *Outlet Maker*.\n" +
+    "En breve un asesor va a revisar tu pedido. 🙌",
     { parse_mode: "Markdown" }
   );
 });
@@ -242,6 +284,7 @@ botVentas.onText(/\/cerrar/, async (msg) => {
   if (conv.timerAviso) clearTimeout(conv.timerAviso);
   if (conv.timerCierre) clearTimeout(conv.timerCierre);
   delete conversaciones[ordenId];
+  atenderSiguienteEnFila();
   botVentas.sendMessage(msg.chat.id, `✅ Conversación #${ordenId} cerrada y archivada.`);
 });
 
@@ -349,7 +392,8 @@ PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${term
         { parse_mode: "Markdown" }
       );
 
-      delete conversaciones[ordenId];
+         delete conversaciones[ordenId];
+      atenderSiguienteEnFila();
       return;
     }
 
@@ -366,6 +410,47 @@ PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${term
     console.error("Error IA ventas:", e);
   }
 });
+
+// ── Pasar al siguiente en la fila ─────────────────────────
+
+async function atenderSiguienteEnFila() {
+  if (filaEspera.length === 0) return;
+
+  const siguiente = filaEspera.shift(); // sacar el primero
+  const { ordenId, chatId } = siguiente;
+
+  if (!conversaciones[ordenId]) conversaciones[ordenId] = {
+    modo: "esperando",
+    historial: [],
+    contextoExtra: "",
+    salidasTema: 0
+  };
+
+  conversaciones[ordenId].clienteChatId = chatId;
+
+  // Avisar al cliente que es su turno
+  await botVentas.sendMessage(chatId,
+    "🎉 ¡Ya es tu turno!\n\n" +
+    "📦 Estamos revisando tu pedido, muy pronto serás atendido. 🙌",
+    { parse_mode: "Markdown" }
+  );
+
+  // Avisar al admin
+  await botVentas.sendMessage(ADMIN_CHAT_ID,
+    `📋 *Siguiente cliente en fila*\n` +
+    `Orden #${ordenId} ya está lista para ser atendida.\n` +
+    `Usá /msg para escribirle.`,
+    { parse_mode: "Markdown" }
+  );
+
+  // Actualizar posiciones a los que siguen esperando
+  filaEspera.forEach((f, i) => {
+    botVentas.sendMessage(f.chatId,
+      `📋 Avanzaste en la fila, ahora estás en la posición *#${i + 1}*. ¡Gracias por tu paciencia! 🙏`,
+      { parse_mode: "Markdown" }
+    );
+  });
+}
 
 // ── Timer de inactividad ───────────────────────────────────
 
@@ -404,6 +489,7 @@ function resetearTimerInactividad(ordenId) {
     );
 
     delete conversaciones[ordenId];
+    atenderSiguienteEnFila();
   }, 2 * 60 * 1000);
 }
 
