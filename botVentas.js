@@ -186,6 +186,9 @@ botVentas.onText(/\/msg (.+)/s, async (msg, match) => {
   conv.historial.push({ rol: "admin", texto });
   conv.modo = "ia";
 
+  // Iniciar timer de inactividad
+  resetearTimerInactividad(ordenId);
+
   botVentas.sendMessage(msg.chat.id,
     "✅ Mensaje enviado al cliente.\n" +
     "🤖 La IA toma el control desde ahora.\n\n" +
@@ -236,6 +239,8 @@ botVentas.onText(/\/cerrar/, async (msg) => {
     );
   }
 
+  if (conv.timerAviso) clearTimeout(conv.timerAviso);
+  if (conv.timerCierre) clearTimeout(conv.timerCierre);
   delete conversaciones[ordenId];
   botVentas.sendMessage(msg.chat.id, `✅ Conversación #${ordenId} cerrada y archivada.`);
 });
@@ -270,6 +275,9 @@ botVentas.on("message", async (msg) => {
 
   const conv = conversaciones[ordenId];
   conv.historial.push({ rol: "cliente", texto: msg.text });
+
+  // Resetear timer de inactividad
+  resetearTimerInactividad(ordenId);
 
   // Espejo al admin en tiempo real
   botVentas.sendMessage(ADMIN_CHAT_ID,
@@ -358,6 +366,46 @@ PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${term
     console.error("Error IA ventas:", e);
   }
 });
+
+// ── Timer de inactividad ───────────────────────────────────
+
+function resetearTimerInactividad(ordenId) {
+  const conv = conversaciones[ordenId];
+  if (!conv) return;
+
+  // Limpiar timers anteriores
+  if (conv.timerAviso) { clearTimeout(conv.timerAviso); conv.timerAviso = null; }
+  if (conv.timerCierre) { clearTimeout(conv.timerCierre); conv.timerCierre = null; }
+
+  // Aviso al minuto 1
+  conv.timerAviso = setTimeout(async () => {
+    if (!conversaciones[ordenId]) return;
+    await botVentas.sendMessage(conv.clienteChatId,
+      "⏳ ¿Seguís ahí? Si no respondés en 1 minuto el chat se cerrará automáticamente."
+    );
+  }, 60 * 1000);
+
+  // Cierre al minuto 2
+  conv.timerCierre = setTimeout(async () => {
+    if (!conversaciones[ordenId]) return;
+    const clienteChatId = conv.clienteChatId;
+
+    // Avisar al cliente
+    await botVentas.sendMessage(clienteChatId,
+      "🚪 El chat fue cerrado por inactividad.\n" +
+      "Podés retomar tu orden usando el enlace que te llegó al correo."
+    );
+
+    // Avisar al admin
+    await botVentas.sendMessage(ADMIN_CHAT_ID,
+      `⏰ *Chat cerrado por inactividad*\n` +
+      `Orden #${ordenId} fue cerrada porque el cliente no respondió en 2 minutos.`,
+      { parse_mode: "Markdown" }
+    );
+
+    delete conversaciones[ordenId];
+  }, 2 * 60 * 1000);
+}
 
 // ── Registrar orden desde server.js ───────────────────────
 
