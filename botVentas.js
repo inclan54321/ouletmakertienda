@@ -559,9 +559,14 @@ botVentas.on("message", async (msg) => {
     return;
   }
 
-  // Detectar si el cliente dice que ya pagó por texto
-  const textoLower = (msg.text || "").toLowerCase();
-  const mencionaPago = /ya pag[ué]|ya transfer[ií]|hice el sinpe|realic[eé] el pago|ya deposit[eé]|te hice el sinpe|sinpe listo|pago realizado|pago hecho|ya mand[eé] el sinpe/.test(textoLower);
+  // Detectar si el cliente dice que ya pagó — la IA decide
+  const promptPago =
+    `Analizá el siguiente mensaje de un cliente de una tienda en Costa Rica.\n` +
+    `¿El cliente está indicando que ya realizó un pago o transferencia SINPE?\n` +
+    `Respondé ÚNICAMENTE con SI o NO, sin explicaciones.\n\n` +
+    `Mensaje: "${msg.text}"`;
+  const respuestaPago = await preguntarDeepSeek(promptPago);
+  const mencionaPago = respuestaPago.trim().toUpperCase().startsWith("SI");
 
   if (mencionaPago) {
     resetearTimerInactividad(ordenId);
