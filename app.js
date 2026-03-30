@@ -1912,6 +1912,7 @@ try {
         nombre: name,
         telefono: phone,
         direccion: address,
+        email: email,
         productos: cartNow.map(it => ({
           name: allProducts.find(p => p.id === it.productId)?.name || it.productId,
           qty: it.qty
