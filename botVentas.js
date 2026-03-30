@@ -5,6 +5,10 @@ const http = require("http");
 const TOKEN = process.env.TELEGRAM_BOT_VENTAS_TOKEN;
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
 const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const SENDGRID_KEY = process.env.SENDGRID_API_KEY;
+const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL;
+const SENDGRID_NAME = process.env.SENDGRID_FROM_NAME || "Outlet Maker Tienda";
 
 if (!TOKEN) { console.error("❌ TELEGRAM_BOT_VENTAS_TOKEN no definido"); process.exit(1); }
 if (!DEEPSEEK_KEY) { console.error("❌ DEEPSEEK_API_KEY no definido"); process.exit(1); }
@@ -29,6 +33,96 @@ async function obtenerTerminos() {
     req.on("error", () => resolve({}));
     req.end();
   });
+}
+
+async function analizarImagenGemini(imageBase64, mimeType, contexto) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      contents: [{
+        parts: [
+          {
+            text:
+              `Sos un asistente de ventas de Outlet Maker, una tienda en Costa Rica.\n` +
+              `Contexto del pedido actual:\n${contexto}\n\n` +
+              `Analizá esta imagen y determiná:\n` +
+              `1. ¿Es un comprobante de pago SINPE? Respondé SOLO con "SINPE_SI" o "SINPE_NO" en la primera línea.\n` +
+              `2. Si es SINPE, extraé en líneas separadas: MONTO: xxx, CONFIRMACION: xxx, FECHA: xxx, HORA: xxx.\n` +
+              `3. Si NO es SINPE, describí brevemente qué muestra la imagen y si está relacionada con el pedido (producto, consulta, etc). Respondé en español.`
+          },
+          {
+            inline_data: {
+              mime_type: mimeType,
+              data: imageBase64
+            }
+          }
+        ]
+      }]
+    });
+
+    const req = https.request({
+      hostname: "generativelanguage.googleapis.com",
+      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = "";
+      res.on("data", c => data += c);
+      res.on("end", () => {
+        try {
+          const j = JSON.parse(data);
+          resolve(j.candidates[0].content.parts[0].text.trim());
+        } catch { reject(new Error("Error parseando respuesta Gemini")); }
+      });
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+async function descargarImagenBase64(fileUrl) {
+  return new Promise((resolve, reject) => {
+    https.get(fileUrl, (res) => {
+      const chunks = [];
+      res.on("data", c => chunks.push(c));
+      res.on("end", () => resolve(Buffer.concat(chunks).toString("base64")));
+      res.on("error", reject);
+    });
+  });
+}
+
+async function enviarCorreoSinpe(email, nombre, ordenId, accion) {
+  if (!SENDGRID_KEY || !SENDGRID_FROM) return;
+  const sgMail = require("@sendgrid/mail");
+  sgMail.setApiKey(SENDGRID_KEY);
+
+  if (accion === "confirmar") {
+    await sgMail.send({
+      to: email,
+      from: { email: SENDGRID_FROM, name: SENDGRID_NAME },
+      subject: `✅ Pago confirmado — Pedido #${ordenId}`,
+      html:
+        `<p>Hola <strong>${nombre}</strong>,</p>` +
+        `<p>Nos complace informarte que tu pago para el pedido <strong>#${ordenId}</strong> ha sido confirmado exitosamente. 🎉</p>` +
+        `<p>En breve recibirás el número de rastreo de tu pedido para que puedas darle seguimiento.</p>` +
+        `<p>Gracias por confiar en <strong>Outlet Maker</strong>. ¡Fue un placer atenderte! 🙌</p>`
+    });
+  } else {
+    await sgMail.send({
+      to: email,
+      from: { email: SENDGRID_FROM, name: SENDGRID_NAME },
+      subject: `⚠️ Verificación de pago — Pedido #${ordenId}`,
+      html:
+        `<p>Hola <strong>${nombre}</strong>,</p>` +
+        `<p>Hemos revisado cuidadosamente tu comprobante de pago para el pedido <strong>#${ordenId}</strong>, ` +
+        `pero lamentablemente no pudimos encontrar ningún depósito registrado a nuestro nombre.</p>` +
+        `<p>No te preocupes, uno de nuestros asesores se pondrá en contacto contigo muy pronto para ayudarte a resolver esta situación.</p>` +
+        `<p>Disculpá los inconvenientes. Estamos a tus órdenes. 🙏</p>`
+    });
+  }
 }
 
 async function preguntarDeepSeek(prompt) {
@@ -317,6 +411,193 @@ botVentas.on("message", async (msg) => {
   if (!ordenId) return;
 
   const conv = conversaciones[ordenId];
+
+  // Rechazar audios
+  if (msg.voice || msg.audio) {
+    return botVentas.sendMessage(clienteChatId,
+      "🎙️ Lo sentimos, por el momento no podemos recibir mensajes de voz.\n" +
+      "Por favor escribí tu consulta en texto y con gusto te atendemos. 🙏"
+    );
+  }
+
+  // Rechazar llamadas (video_note también por las dudas)
+  if (msg.video_note) {
+    return botVentas.sendMessage(clienteChatId,
+      "📵 Las llamadas no están disponibles en este canal de atención.\n" +
+      "Por favor escribí tu consulta en texto y te respondemos a la brevedad. 🙏"
+    );
+  }
+
+  // Manejar fotos
+  if (msg.photo) {
+    resetearTimerInactividad(ordenId);
+
+    const orden = ordenesCache[ordenId] || {};
+    const contexto =
+      `Cliente: ${orden.nombre || "cliente"}\n` +
+      `Productos: ${orden.productos ? orden.productos.map(p => `${p.name} x${p.qty || 1}`).join(", ") : ""}\n` +
+      `Total: ₡${orden.total || ""}\n` +
+      `Historial reciente:\n${conv.historial.slice(-4).map(h => `${h.rol}: ${h.texto || "[imagen]"}`).join("\n")}`;
+
+    try {
+      // Descargar la foto
+      const fileId = msg.photo[msg.photo.length - 1].file_id;
+      const fileInfoUrl = `https://api.telegram.org/bot${TOKEN}/getFile?file_id=${fileId}`;
+      const fileInfo = await new Promise((resolve, reject) => {
+        https.get(fileInfoUrl, (res) => {
+          let d = "";
+          res.on("data", c => d += c);
+          res.on("end", () => resolve(JSON.parse(d)));
+          res.on("error", reject);
+        });
+      });
+      const filePath = fileInfo.result.file_path;
+      const fileUrl = `https://api.telegram.org/file/bot${TOKEN}/${filePath}`;
+      const imageBase64 = await descargarImagenBase64(fileUrl);
+      const mimeType = filePath.endsWith(".png") ? "image/png" : "image/jpeg";
+
+      // Analizar con Gemini
+      const geminiRespuesta = await analizarImagenGemini(imageBase64, mimeType, contexto);
+      const primeraLinea = geminiRespuesta.split("\n")[0].trim();
+
+      if (primeraLinea === "SINPE_SI") {
+        // Extraer datos del comprobante
+        const monto = (geminiRespuesta.match(/MONTO:\s*(.+)/i) || [])[1] || "No detectado";
+        const confirmacion = (geminiRespuesta.match(/CONFIRMACION:\s*(.+)/i) || [])[1] || "No detectado";
+        const fecha = (geminiRespuesta.match(/FECHA:\s*(.+)/i) || [])[1] || "No detectado";
+        const hora = (geminiRespuesta.match(/HORA:\s*(.+)/i) || [])[1] || "No detectado";
+
+        // Avisar al cliente
+        await botVentas.sendMessage(clienteChatId,
+          "💚 ¡Muchas gracias por tu comprobante de pago!\n\n" +
+          "Estamos verificando tu depósito. En breve recibirás un correo con la confirmación del pago " +
+          "y las instrucciones para continuar con el proceso. 🙏\n\n" +
+          "¡Fue un placer atenderte en Outlet Maker! 🛍️"
+        );
+
+        // Notificar al admin con botones
+        const notifMsg =
+          `💳 *Posible comprobante SINPE recibido*\n` +
+          `━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 Orden: #${ordenId}\n` +
+          `👤 Cliente: ${orden.nombre || "—"}\n` +
+          `📧 Correo: ${orden.email || "—"}\n\n` +
+          `🧾 *Datos del comprobante:*\n` +
+          `💰 Monto: ${monto}\n` +
+          `🔢 Confirmación: ${confirmacion}\n` +
+          `📅 Fecha: ${fecha}\n` +
+          `🕐 Hora: ${hora}`;
+
+        await botVentas.sendMessage(ADMIN_CHAT_ID, notifMsg, {
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [[
+              { text: "✅ Confirmar pago", callback_data: `sinpe_confirmar_${ordenId}` },
+              { text: "❌ Denegar pago", callback_data: `sinpe_denegar_${ordenId}` }
+            ]]
+          }
+        });
+
+        // Cerrar el chat
+        if (conv.timerAviso) clearTimeout(conv.timerAviso);
+        if (conv.timerCierre) clearTimeout(conv.timerCierre);
+        delete conversaciones[ordenId];
+        atenderSiguienteEnFila();
+        return;
+      }
+
+      // No es SINPE — describir la imagen con DeepSeek
+      const descripcionImagen = geminiRespuesta.split("\n").slice(1).join(" ").trim() || geminiRespuesta;
+
+      const promptConFoto =
+        `Sos un asesor de ventas de Outlet Maker, una tienda en Costa Rica.\n` +
+        `Sos amable, directo y profesional. Respondés en español.\n\n` +
+        `El cliente envió una imagen. Gemini la analizó y dice:\n"${descripcionImagen}"\n\n` +
+        `Contexto del pedido:\n${contexto}\n\n` +
+        `REGLAS:\n` +
+        `- Si la imagen está relacionada con el pedido o el producto, respondé útilmente.\n` +
+        `- Si la imagen NO tiene relación con el pedido, tratala como una salida de tema.\n` +
+        `- El cliente ha salido del tema ${conv.salidasTema} veces.\n` +
+        `  * 1ra vez: pedile amablemente que no cambie de tema.\n` +
+        `  * 2da vez: advertile que el chat se cerrará.\n` +
+        `  * 3ra vez: respondé EXACTAMENTE con CERRAR_CHAT y nada más.\n\n` +
+        `Respondé SOLO el próximo mensaje del asesor, sin etiquetas ni explicaciones.`;
+
+      const respuesta = await preguntarDeepSeek(promptConFoto);
+
+      if (respuesta.trim() === "CERRAR_CHAT") {
+        if (ordenesCache[ordenId]) ordenesCache[ordenId].bloqueado = true;
+        await botVentas.sendMessage(clienteChatId,
+          "🚫 Este chat ha sido cerrado porque te saliste del tema de la compra en varias ocasiones.\n" +
+          "El enlace de tu pedido ya no está disponible. Contáctanos por otro medio."
+        );
+        botVentas.sendMessage(ADMIN_CHAT_ID,
+          `🚫 *Chat cerrado automáticamente*\nOrden #${ordenId} fue cerrada porque el cliente se salió del tema 3 veces.`,
+          { parse_mode: "Markdown" }
+        );
+        if (conv.timerAviso) clearTimeout(conv.timerAviso);
+        if (conv.timerCierre) clearTimeout(conv.timerCierre);
+        delete conversaciones[ordenId];
+        atenderSiguienteEnFila();
+        return;
+      }
+
+      if (conv.salidasTema < 3) conv.salidasTema = (conv.salidasTema || 0) + 1;
+      await botVentas.sendMessage(clienteChatId, respuesta);
+      conv.historial.push({ rol: "ia", texto: `[imagen analizada] ${respuesta}` });
+      botVentas.sendMessage(ADMIN_CHAT_ID,
+        `🖼️ *Cliente envió imagen (Orden #${ordenId})*\nGemini: ${descripcionImagen.slice(0, 200)}\n🤖 IA respondió: "${respuesta}"`,
+        { parse_mode: "Markdown" }
+      );
+
+    } catch (e) {
+      console.error("Error analizando imagen:", e);
+      botVentas.sendMessage(clienteChatId,
+        "⚠️ Hubo un problema analizando tu imagen. Por favor intentá de nuevo o describí tu consulta en texto. 🙏"
+      );
+    }
+    return;
+  }
+
+  // Detectar si el cliente dice que ya pagó por texto
+  const textoLower = (msg.text || "").toLowerCase();
+  const mencionaPago = /ya pag[ué]|ya transfer[ií]|hice el sinpe|realic[eé] el pago|ya deposit[eé]|te hice el sinpe|sinpe listo|pago realizado|pago hecho|ya mand[eé] el sinpe/.test(textoLower);
+
+  if (mencionaPago) {
+    resetearTimerInactividad(ordenId);
+    const orden = ordenesCache[ordenId] || {};
+
+    await botVentas.sendMessage(clienteChatId,
+      "💚 ¡Muchas gracias por informarnos!\n\n" +
+      "En breve recibirás un correo con la confirmación de tu depósito y las instrucciones para continuar con el proceso. 🙏\n\n" +
+      "¡Fue un placer atenderte en Outlet Maker! 🛍️"
+    );
+
+    await botVentas.sendMessage(ADMIN_CHAT_ID,
+      `💳 *El cliente indica que ya realizó el pago*\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `📋 Orden: #${ordenId}\n` +
+      `👤 Cliente: ${orden.nombre || "—"}\n` +
+      `📧 Correo: ${orden.email || "—"}\n` +
+      `💬 Mensaje: "${msg.text}"`,
+      {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[
+            { text: "✅ Confirmar pago", callback_data: `sinpe_confirmar_${ordenId}` },
+            { text: "❌ Denegar pago", callback_data: `sinpe_denegar_${ordenId}` }
+          ]]
+        }
+      }
+    );
+
+    if (conv.timerAviso) clearTimeout(conv.timerAviso);
+    if (conv.timerCierre) clearTimeout(conv.timerCierre);
+    delete conversaciones[ordenId];
+    atenderSiguienteEnFila();
+    return;
+  }
+
   conv.historial.push({ rol: "cliente", texto: msg.text });
 
   // Resetear timer de inactividad
@@ -493,6 +774,42 @@ function resetearTimerInactividad(ordenId) {
   }, 2 * 60 * 1000);
 }
 
+// ── Manejar botones inline (confirmar/denegar SINPE) ──────
+
+botVentas.on("callback_query", async (query) => {
+  if (String(query.from.id) !== String(ADMIN_CHAT_ID)) return;
+
+  const data = query.data || "";
+  const [accion, tipo, ordenId] = data.split("_"); // sinpe_confirmar_0013
+
+  if (accion !== "sinpe") return;
+
+  const orden = ordenesCache[ordenId] || {};
+  const email = orden.email || "";
+  const nombre = orden.nombre || "cliente";
+
+  try {
+    await enviarCorreoSinpe(email, nombre, ordenId, tipo);
+
+    if (tipo === "confirmar") {
+      await botVentas.answerCallbackQuery(query.id, { text: "✅ Correo de confirmación enviado." });
+      await botVentas.editMessageText(
+        `✅ *Pago confirmado*\nOrden #${ordenId} — Correo enviado a ${email}`,
+        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: "Markdown" }
+      );
+    } else {
+      await botVentas.answerCallbackQuery(query.id, { text: "❌ Correo de denegación enviado." });
+      await botVentas.editMessageText(
+        `❌ *Pago denegado*\nOrden #${ordenId} — Correo enviado a ${email}`,
+        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: "Markdown" }
+      );
+    }
+  } catch (e) {
+    console.error("Error enviando correo SINPE:", e);
+    await botVentas.answerCallbackQuery(query.id, { text: "⚠️ Error enviando el correo." });
+  }
+});
+
 // ── Registrar orden desde server.js ───────────────────────
 
 function registrarOrden(ordenId, datos) {
@@ -505,6 +822,17 @@ function registrarOrden(ordenId, datos) {
     };
   }
 }
+
+// Rechazar llamadas telefónicas al bot
+botVentas.on("message", (msg) => {
+  if (String(msg.chat.id) === String(ADMIN_CHAT_ID)) return;
+  if (msg.phone_number || (msg.contact && msg.contact.phone_number)) {
+    botVentas.sendMessage(msg.chat.id,
+      "📵 Las llamadas no están disponibles en este canal.\n" +
+      "Por favor escribí tu consulta en texto y te atendemos con gusto. 🙏"
+    );
+  }
+});
 
 console.log("💬 Bot de ventas iniciado...");
 module.exports = { botVentas, registrarOrden };
