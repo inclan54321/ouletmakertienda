@@ -1878,7 +1878,9 @@ function openCartModal(){
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, orderNumber })
-      }).catch(() => {});
+      }).then(r => r.json()).then(j => {
+        if (!j.ok) console.error("Error enviando correo de pedido:", j.error);
+      }).catch(e => console.error("Error enviando correo de pedido:", e));
       saveJSON("buy_orders", orders);
 
       const allProducts = getProducts();
