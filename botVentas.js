@@ -797,6 +797,43 @@ botVentas.on("callback_query", async (query) => {
     await enviarCorreoSinpe(email, nombre, ordenId, tipo);
 
     if (tipo === "confirmar") {
+      // Mandar a imprimir etiqueta
+      const ngrokUrl = process.env.NGROK_URL || "";
+      if (ngrokUrl) {
+        try {
+          const printPayload = JSON.stringify({
+            secreto: "ouletmaker2024",
+            orderNumber: ordenId,
+            nombre: orden.nombre || "—",
+            telefono: orden.telefono || "—",
+            direccion: orden.direccion || "—",
+            productos: orden.productos || []
+          });
+          await new Promise((resolve, reject) => {
+            const urlObj = new URL(ngrokUrl + "/imprimir");
+            const reqP = https.request({
+              hostname: urlObj.hostname,
+              path: urlObj.pathname,
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(printPayload)
+              }
+            }, (r) => {
+              let d = "";
+              r.on("data", c => d += c);
+              r.on("end", () => resolve(d));
+            });
+            reqP.on("error", reject);
+            reqP.write(printPayload);
+            reqP.end();
+          });
+          console.log(`🖨️ Impresión enviada — Orden #${ordenId}`);
+        } catch (e) {
+          console.error("Error enviando a imprimir:", e.message);
+        }
+      }
+
       await botVentas.answerCallbackQuery(query.id, { text: "✅ Correo de confirmación enviado." });
       await botVentas.editMessageText(
         `✅ *Pago confirmado*\nOrden #${ordenId} — Correo enviado a ${email}`,
