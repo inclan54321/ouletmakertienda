@@ -2001,9 +2001,6 @@ function openCartModal(){
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
       
-git add app.js
-git commit -m "fix: cerrar bodyHTML correctamente antes del crData"
-git push
       const canton = document.querySelector("#buyCanton").value.trim();
       const distrito = document.querySelector("#buyDistrito").value.trim();
       const senas = document.querySelector("#buyAddress").value.trim();
