@@ -1840,7 +1840,31 @@ function openCartModal(){
             <label style="display:block; margin-bottom:4px;">Número</label>
             <input id="buyPhone" type="tel" placeholder="Tu número de teléfono" style="width:100%;" />
           </div>
-    // ── Selectores encadenados Provincia → Cantón → Distrito ──
+          <div>
+            <label style="display:block; margin-bottom:4px;">Provincia</label>
+            <select id="buyProvincia" style="width:100%;">
+              <option value="">-- Selecciona provincia --</option>
+              <option>San José</option><option>Alajuela</option><option>Cartago</option>
+              <option>Heredia</option><option>Guanacaste</option><option>Puntarenas</option>
+              <option>Limón</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:4px;">Cantón</label>
+            <select id="buyCanton" style="width:100%;" disabled>
+              <option value="">-- Primero selecciona provincia --</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:4px;">Distrito</label>
+            <select id="buyDistrito" style="width:100%;" disabled>
+              <option value="">-- Primero selecciona cantón --</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:4px;">Señas adicionales</label>
+            <input id="buyAddress" type="text" placeholder="Ej: casa azul, frente al parque..." style="width:100%;" />
+          </div>
     const crData = {
       "San José": {
         "San José": ["Carmen","Merced","Hospital","Catedral","Zapote","San Francisco de Dos Ríos","Uruca","Mata Redonda","Pavas","Hatillo","San Sebastián"],
@@ -1958,19 +1982,6 @@ function openCartModal(){
       selDist.innerHTML = '<option value="">-- Selecciona distrito --</option>';
       distritos.forEach(d => selDist.innerHTML += `<option>${d}</option>`);
       selDist.disabled = !selCant.value;
-    });
-
-    document.querySelector("#buyCancel").addEventListener("click", closeModal);
-          <div>
-            <label style="display:block; margin-bottom:4px;">Correo electrónico</label>
-            <input id="buyEmail" type="email" placeholder="Tu correo electrónico" style="width:100%;" />
-          </div>
-        </div>
-      `,
-      footerHTML: `
-        <button class="secondary" id="buyCancel">Cancelar</button>
-        <button class="primary" id="buyConfirm">Confirmar pedido</button>
-      `
     });
 
     document.querySelector("#buyCancel").addEventListener("click", closeModal);
