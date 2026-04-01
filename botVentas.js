@@ -432,7 +432,11 @@ botVentas.on("message", async (msg) => {
   if (msg.text && msg.text.startsWith("/")) return;
 
   const ordenId = encontrarOrdenDeCliente(clienteChatId);
-  if (!ordenId) return;
+  if (!ordenId) {
+    console.log("⚠️ Cliente escribió pero no se encontró su ordenId. chatId:", clienteChatId);
+    console.log("conversaciones activas:", JSON.stringify(Object.keys(conversaciones)));
+    return;
+  }
 
   const conv = conversaciones[ordenId];
 
@@ -729,10 +733,15 @@ async function atenderSiguienteEnFila() {
   const siguiente = filaEspera.shift(); // sacar el primero
   const { ordenId, chatId } = siguiente;
 
+  const historialGuardadoFila = (
+    ordenesCache[ordenId]?._historial &&
+    ordenesCache[ordenId]?._historialExpira > Date.now()
+  ) ? ordenesCache[ordenId]._historial : [];
+
   if (!conversaciones[ordenId]) conversaciones[ordenId] = {
-    modo: "esperando",
-    historial: [],
-    contextoExtra: "",
+    modo: historialGuardadoFila.length > 0 ? "ia" : "esperando",
+    historial: historialGuardadoFila,
+    contextoExtra: ordenesCache[ordenId]?.contextoExtra || "",
     salidasTema: 0
   };
 
