@@ -1865,6 +1865,18 @@ function openCartModal(){
             <label style="display:block; margin-bottom:4px;">Señas adicionales</label>
             <input id="buyAddress" type="text" placeholder="Ej: casa azul, frente al parque..." style="width:100%;" />
           </div>
+          <div>
+            <label style="display:block; margin-bottom:4px;">Correo electrónico</label>
+            <input id="buyEmail" type="email" placeholder="Tu correo electrónico" style="width:100%;" />
+          </div>
+        </div>
+      `,
+      footerHTML: `
+        <button class="secondary" id="buyCancel">Cancelar</button>
+        <button class="primary" id="buyConfirm">Confirmar pedido</button>
+      `
+    });
+
     const crData = {
       "San José": {
         "San José": ["Carmen","Merced","Hospital","Catedral","Zapote","San Francisco de Dos Ríos","Uruca","Mata Redonda","Pavas","Hatillo","San Sebastián"],
@@ -1989,8 +2001,9 @@ function openCartModal(){
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
       
-      const email = document.querySelector("#buyEmail").value.trim();
-            const provincia = document.querySelector("#buyProvincia").value.trim();
+git add app.js
+git commit -m "fix: cerrar bodyHTML correctamente antes del crData"
+git push
       const canton = document.querySelector("#buyCanton").value.trim();
       const distrito = document.querySelector("#buyDistrito").value.trim();
       const senas = document.querySelector("#buyAddress").value.trim();
