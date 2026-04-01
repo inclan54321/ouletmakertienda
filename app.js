@@ -2000,7 +2000,8 @@ function openCartModal(){
     document.querySelector("#buyConfirm").addEventListener("click", async() => {
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
-      
+      const email = document.querySelector("#buyEmail").value.trim();
+      const provincia = document.querySelector("#buyProvincia").value.trim();
       const canton = document.querySelector("#buyCanton").value.trim();
       const distrito = document.querySelector("#buyDistrito").value.trim();
       const senas = document.querySelector("#buyAddress").value.trim();
