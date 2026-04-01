@@ -2000,10 +2000,8 @@ function openCartModal(){
     document.querySelector("#buyConfirm").addEventListener("click", async() => {
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
-      
-git add app.js
-git commit -m "fix: cerrar bodyHTML correctamente antes del crData"
-git push
+      const email = document.querySelector("#buyEmail").value.trim();
+      const provincia = document.querySelector("#buyProvincia").value.trim();
       const canton = document.querySelector("#buyCanton").value.trim();
       const distrito = document.querySelector("#buyDistrito").value.trim();
       const senas = document.querySelector("#buyAddress").value.trim();
@@ -2037,40 +2035,39 @@ git push
           }).join("\n")
         : "(carrito vacío)";
 
-     // DESPUÉS — esto es lo que debe quedar
-const ordenId = orderNumber;
+      const ordenId = orderNumber;
 
-const text =
-  `🛍️ PEDIDO #${orderNumber}\n` +
-  `Nombre: ${name}\n` +
-  `Teléfono: ${phone}\n` +
-  `Dirección: ${address}\n\n` +
-  `Items:\n${itemsText}`;
+      const text =
+        `🛍️ PEDIDO #${orderNumber}\n` +
+        `Nombre: ${name}\n` +
+        `Teléfono: ${phone}\n` +
+        `Dirección: ${address}\n\n` +
+        `Items:\n${itemsText}`;
 
-try {
-  const r = await fetch("/api/telegram-notify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      type: "cart",
-      text,
-      ordenId,
-      clienteData: {
-        nombre: name,
-        telefono: phone,
-        direccion: address,
-        email: email,
-        productos: cartNow.map(it => ({
-          name: allProducts.find(p => p.id === it.productId)?.name || it.productId,
-          qty: it.qty
-        })),
-        total: cartNow.reduce((acc, it) => {
-          const p = allProducts.find(pr => pr.id === it.productId);
-          return acc + ((p?.price || 0) * it.qty);
-        }, 0)
-      }
-    })
-  });
+      try {
+        const r = await fetch("/api/telegram-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "cart",
+            text,
+            ordenId,
+            clienteData: {
+              nombre: name,
+              telefono: phone,
+              direccion: address,
+              email: email,
+              productos: cartNow.map(it => ({
+                name: allProducts.find(p => p.id === it.productId)?.name || it.productId,
+                qty: it.qty
+              })),
+              total: cartNow.reduce((acc, it) => {
+                const p = allProducts.find(pr => pr.id === it.productId);
+                return acc + ((p?.price || 0) * it.qty);
+              }, 0)
+            }
+          })
+        });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || "Telegram error");
       } catch (e) {
