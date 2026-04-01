@@ -672,6 +672,11 @@ PAGOS: ${terminos.pagos?.metodo} al ${terminos.pagos?.numero} a nombre de ${term
       `Historial:\n` +
       `${conv.historial.map(h => `${h.rol === "cliente" ? "Cliente" : "Asesor"}: ${h.texto}`).join("\n")}\n\n` +
       `REGLAS DE COMPORTAMIENTO:\n` +
+      `- Antes de confirmar cualquier dato de envío, verificá que el nombre del cliente sea real y válido, y que la dirección tenga sentido. Si algún dato parece inválido, basura o vacío, NO confirmes el envío y pedile al cliente que lo corrija.\n` +
+      `- Correos de Costa Rica NO tiene cobertura en zonas remotas o de difícil acceso. Si la dirección del cliente está en una zona de cobertura limitada o incierta, indicá que no podés confirmar la entrega y recomendá contactar a un agente humano.\n` +
+      `- NUNCA confirmes que un transportista cubre una zona si no tenés certeza absoluta. Ante la duda respondé: "No podemos confirmar la cobertura en esa zona, te recomendamos contactar a nuestro equipo para verificarlo."\n` +
+      `- Si el nombre o la dirección del cliente contienen caracteres aleatorios, están vacíos o no parecen información real, NO los usés en la respuesta. Solicitá al cliente que verifique y corrija sus datos antes de continuar.\n` +
+      `- Si el cliente hace una pregunta y la respuesta NO aparece en la información del pedido ni en los términos de servicio, intentá responderla con tu conocimiento general de internet. Si tampoco podés responderla con certeza, respondé honestamente: "No tengo información sobre eso, te recomiendo contactar a nuestro equipo para más detalles."\n` +
       `- El cliente ha salido del tema ${conv.salidasTema} veces.\n` +
       `- Si el cliente se sale del tema de la compra:\n` +
       `  * 1ra vez (salidasTema llegará a 1): pedile amablemente que no cambie de tema.\n` +
