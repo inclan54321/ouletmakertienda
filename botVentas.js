@@ -265,9 +265,14 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
   }
 
   // No hay conversación activa — atender directamente
+  const historialGuardado = (
+    ordenesCache[ordenId]?._historial &&
+    ordenesCache[ordenId]?._historialExpira > Date.now()
+  ) ? ordenesCache[ordenId]._historial : [];
+
   if (!conversaciones[ordenId]) conversaciones[ordenId] = {
     modo: "esperando",
-    historial: [],
+    historial: historialGuardado,
     contextoExtra: "",
     salidasTema: 0
   };
@@ -377,6 +382,10 @@ botVentas.onText(/\/cerrar/, async (msg) => {
 
   if (conv.timerAviso) clearTimeout(conv.timerAviso);
   if (conv.timerCierre) clearTimeout(conv.timerCierre);
+  if (ordenesCache[ordenId]) {
+    ordenesCache[ordenId]._historial = conv.historial || [];
+    ordenesCache[ordenId]._historialExpira = Date.now() + (8 * 60 * 60 * 1000);
+  }
   delete conversaciones[ordenId];
   atenderSiguienteEnFila();
   botVentas.sendMessage(msg.chat.id, `✅ Conversación #${ordenId} cerrada y archivada.`);
@@ -774,6 +783,11 @@ function resetearTimerInactividad(ordenId) {
       { parse_mode: "Markdown" }
     );
 
+    // Guardar historial por 8 horas antes de borrar
+    if (ordenesCache[ordenId]) {
+      ordenesCache[ordenId]._historial = conversaciones[ordenId].historial || [];
+      ordenesCache[ordenId]._historialExpira = Date.now() + (8 * 60 * 60 * 1000);
+    }
     delete conversaciones[ordenId];
     atenderSiguienteEnFila();
   }, 2 * 60 * 1000);
