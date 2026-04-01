@@ -688,10 +688,10 @@ color: #ffffff;
 
 .match-btn {
   position: fixed;
-  top: 148px;
+  top: 0px;
   right: 12px;
-  width: 160px;
-  height: 160px;
+  width: 55px;
+  height: 55px;
   background: none;
   border: none;
   cursor: pointer;
