@@ -270,20 +270,35 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
     ordenesCache[ordenId]?._historialExpira > Date.now()
   ) ? ordenesCache[ordenId]._historial : [];
 
+  const esRegreso = historialGuardado.length > 0;
+
   if (!conversaciones[ordenId]) conversaciones[ordenId] = {
-    modo: "esperando",
+    modo: esRegreso ? "ia" : "esperando",
     historial: historialGuardado,
-    contextoExtra: "",
+    contextoExtra: ordenesCache[ordenId]?.contextoExtra || "",
     salidasTema: 0
   };
 
   conversaciones[ordenId].clienteChatId = chatId;
 
-  botVentas.sendMessage(chatId,
-    "👋 ¡Hola! Gracias por tu compra en *Outlet Maker*.\n" +
-    "En breve un asesor va a revisar tu pedido. 🙌",
-    { parse_mode: "Markdown" }
-  );
+  if (esRegreso) {
+    // Cliente regresa — IA retoma directamente
+    botVentas.sendMessage(chatId,
+      "👋 ¡Bienvenido de vuelta a *Outlet Maker*! Continuamos donde lo dejamos. 🙌",
+      { parse_mode: "Markdown" }
+    );
+    botVentas.sendMessage(ADMIN_CHAT_ID,
+      `🔄 *Cliente retomó la conversación*\nOrden #${ordenId} — La IA tiene el historial y retoma automáticamente.`,
+      { parse_mode: "Markdown" }
+    );
+    resetearTimerInactividad(ordenId);
+  } else {
+    botVentas.sendMessage(chatId,
+      "👋 ¡Hola! Gracias por tu compra en *Outlet Maker*.\n" +
+      "En breve un asesor va a revisar tu pedido. 🙌",
+      { parse_mode: "Markdown" }
+    );
+  }
 });
 
 // ── ADMIN agrega detalles reales de los productos ──────────
