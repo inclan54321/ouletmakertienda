@@ -705,8 +705,8 @@ color: #ffffff;
 }
 .match-btn img {
   pointer-events: auto;
-  width: 160px;
-  height: 160px;
+  width: 208px;
+  height: 208px;
   object-fit: contain;
   cursor: pointer;
 }
