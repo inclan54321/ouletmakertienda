@@ -800,7 +800,8 @@ function resetearTimerInactividad(ordenId) {
 
     // Guardar historial por 8 horas antes de borrar
     if (ordenesCache[ordenId]) {
-      ordenesCache[ordenId]._historial = conversaciones[ordenId].historial || [];
+      const historialAnterior = ordenesCache[ordenId]._historial || [];
+ordenesCache[ordenId]._historial = [...historialAnterior, ...(conversaciones[ordenId].historial || [])];
       ordenesCache[ordenId]._historialExpira = Date.now() + (8 * 60 * 60 * 1000);
     }
     delete conversaciones[ordenId];
