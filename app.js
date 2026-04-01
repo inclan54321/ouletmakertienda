@@ -1977,10 +1977,14 @@ function openCartModal(){
     document.querySelector("#buyConfirm").addEventListener("click", async() => {
       const name = document.querySelector("#buyName").value.trim();
       const phone = document.querySelector("#buyPhone").value.trim();
-      const address = document.querySelector("#buyAddress").value.trim();
+      
       const email = document.querySelector("#buyEmail").value.trim();
-
-      if (!name || !phone || !address || !email) {
+            const provincia = document.querySelector("#buyProvincia").value.trim();
+      const canton = document.querySelector("#buyCanton").value.trim();
+      const distrito = document.querySelector("#buyDistrito").value.trim();
+      const senas = document.querySelector("#buyAddress").value.trim();
+      const address = [provincia, canton, distrito, senas].filter(Boolean).join(", ");
+      if (!name || !phone || !provincia || !canton || !distrito || !email) {
         alert("Por favor completa todos los campos.");
         return;
       }
