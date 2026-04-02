@@ -3067,9 +3067,21 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
       }
 
       // Guardar solicitud
+      const solicitudData = { codigo, telefono, tipoArticulo, textoArticulo, tiempo, horas, created: new Date().toISOString() };
       const solicitudes = loadJSON("match_solicitudes", []);
-      solicitudes.push({ codigo, telefono, tipoArticulo, textoArticulo, tiempo, horas, created: new Date().toISOString() });
+      solicitudes.push(solicitudData);
       saveJSON("match_solicitudes", solicitudes);
+
+      // Obtener email y nombre del registro de favoritos
+      const favs = getFavoritos();
+      const fav  = favs.find(f => f.id === codigo);
+      if (fav?.correo) {
+        fetch("/api/match-optin-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...solicitudData, email: fav.correo, nombre: fav.nombre })
+        }).catch(e => console.error("Error enviando correo opt-in Match:", e));
+      }
 
       closeModal();
       openModal({

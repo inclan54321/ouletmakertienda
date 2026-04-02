@@ -11,6 +11,7 @@ const sgMail = require("@sendgrid/mail");
 // ── Iniciar el bot ──────────────────────────────────
 require("./bot");
 require("./botRastreo");
+require("./botMatch");
 const { registrarOrden } = require("./botVentas");
 
 
@@ -255,6 +256,28 @@ const nombreCat = categoria.charAt(0).toUpperCase() + categoria.slice(1);
       }
     }
 
+
+    // ── MATCH OPT-IN EMAIL ───────────────────────────
+    if (req.method === "POST" && req.url === "/api/match-optin-email") {
+      try {
+        const { enviarCorreoOptIn } = require("./botMatch");
+        const body = await readJsonBody(req);
+        const { email, nombre, codigo } = body;
+        if (!email || !codigo) return sendJson(res, 400, { ok: false, error: "email y codigo requeridos" });
+        await enviarCorreoOptIn(email, nombre || "cliente", codigo);
+        // Guardar solicitud en JSON del servidor
+        const SOLICITUDES_FILE = path.join(__dirname, "match_solicitudes.json");
+        let solicitudes = [];
+        try { solicitudes = JSON.parse(fs.readFileSync(SOLICITUDES_FILE, "utf8")); } catch {}
+        const idx = solicitudes.findIndex(s => s.codigo === codigo);
+        if (idx >= 0) solicitudes[idx] = { ...solicitudes[idx], ...body };
+        else solicitudes.push({ ...body, serverSaved: new Date().toISOString() });
+        fs.writeFileSync(SOLICITUDES_FILE, JSON.stringify(solicitudes, null, 2));
+        return sendJson(res, 200, { ok: true });
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    }
 
     // ── SAVE CATEGORIES (sincronizar desde frontend) ─
     if (req.method === "POST" && req.url === "/api/sync-categories") {
