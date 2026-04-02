@@ -2752,8 +2752,347 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
     });
     document.querySelector("#matchBack")?.addEventListener("click", closeModal);
     document.querySelector("#matchRegistrar")?.addEventListener("click", () => {
-      alert("Formulario de registro próximamente disponible.");
+    // ======= PASO 0: TELÉFONO =======
+    openModal({
+      title: "📱 Match — Registrar solicitud",
+      bodyHTML: `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <p style="margin:0;opacity:0.8;">Ingresá tu número de teléfono para comenzar.</p>
+          <input id="matchTelInput" type="tel" placeholder="Ej: 87295743" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;font-size:16px;" />
+          <p id="matchTelError" style="color:red;display:none;margin:0;">Por favor ingresá un número válido.</p>
+        </div>
+      `,
+      footerHTML: `
+        <button class="secondary" id="matchTelCerrar">Cancelar</button>
+        <button class="primary" id="matchTelSiguiente">Siguiente</button>
+      `
     });
+    document.querySelector("#matchTelCerrar")?.addEventListener("click", closeModal);
+    document.querySelector("#matchTelSiguiente")?.addEventListener("click", () => {
+      const tel = document.querySelector("#matchTelInput")?.value.trim();
+      if (!tel) { document.querySelector("#matchTelError").style.display = "block"; return; }
+
+      const favoritos = getFavoritos();
+      const yaExiste = favoritos.find(f => f.telefono === tel);
+
+      if (yaExiste) {
+        // ======= PASO 1: VERIFICAR CÓDIGO =======
+        openModal({
+          title: "🔑 Verificar código",
+          bodyHTML: `
+            <div style="display:flex;flex-direction:column;gap:12px;text-align:center;">
+              <p style="margin:0;opacity:0.8;">Este teléfono ya tiene un código asignado en Favoritos.<br>Ingresalo para continuar.</p>
+              <input id="matchCodigoInput" type="text" maxlength="5" placeholder="Ej: A3X9K"
+                style="text-align:center;font-size:1.8rem;letter-spacing:8px;width:160px;margin:0 auto;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;" />
+              <p id="matchCodigoError" style="color:red;display:none;margin:0;">Código incorrecto. Intentá de nuevo.</p>
+            </div>
+          `,
+          footerHTML: `
+            <button class="secondary" id="matchCodCerrar">Cancelar</button>
+            <button class="primary" id="matchCodSiguiente">Siguiente</button>
+          `
+        });
+        document.querySelector("#matchCodCerrar")?.addEventListener("click", closeModal);
+        document.querySelector("#matchCodSiguiente")?.addEventListener("click", () => {
+          const cod = document.querySelector("#matchCodigoInput")?.value.trim().toUpperCase();
+          if (cod !== yaExiste.id) { document.querySelector("#matchCodigoError").style.display = "block"; return; }
+          abrirPaso3Match(yaExiste.id, tel);
+        });
+      } else {
+        // ======= PASO 2: DATOS PERSONALES (código nuevo) =======
+        const nuevoCodigo = generarCodigo5();
+        const crData = obtenerCrData();
+        openModal({
+          title: "📝 Tus datos",
+          bodyHTML: `
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="background:rgba(90,160,255,0.1);border:1px solid rgba(90,160,255,0.3);border-radius:10px;padding:10px;text-align:center;">
+                <p style="margin:0;font-size:0.85rem;opacity:0.7;">Tu código Match es:</p>
+                <p style="margin:4px 0 0;font-size:2rem;letter-spacing:8px;color:#f0c040;font-weight:700;">${nuevoCodigo}</p>
+                <p style="margin:4px 0 0;font-size:0.8rem;opacity:0.6;">Guardá este código, también funciona en Favoritos.</p>
+              </div>
+              <label>Nombre completo<br>
+                <input id="matchNombre" type="text" placeholder="Tu nombre" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;" />
+              </label>
+              <label>Correo electrónico<br>
+                <input id="matchCorreo" type="email" placeholder="tucorreo@ejemplo.com" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;" />
+              </label>
+              <label>Provincia<br>
+                <select id="matchProvincia" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;">
+                  <option value="">-- Seleccioná provincia --</option>
+                  <option>San José</option><option>Alajuela</option><option>Cartago</option>
+                  <option>Heredia</option><option>Guanacaste</option><option>Puntarenas</option><option>Limón</option>
+                </select>
+              </label>
+              <label>Cantón<br>
+                <select id="matchCanton" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" disabled>
+                  <option value="">-- Primero seleccioná provincia --</option>
+                </select>
+              </label>
+              <label>Distrito<br>
+                <select id="matchDistrito" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" disabled>
+                  <option value="">-- Primero seleccioná cantón --</option>
+                </select>
+              </label>
+              <p id="matchDatosError" style="color:red;display:none;margin:0;">Por favor completá todos los campos.</p>
+            </div>
+          `,
+          footerHTML: `
+            <button class="secondary" id="matchDatosCerrar">Cancelar</button>
+            <button class="primary" id="matchDatosSiguiente">Siguiente</button>
+          `
+        });
+
+        // Provincia → Cantón → Distrito
+        const selProv = document.querySelector("#matchProvincia");
+        const selCant = document.querySelector("#matchCanton");
+        const selDist = document.querySelector("#matchDistrito");
+        selProv.addEventListener("change", () => {
+          const cantones = crData[selProv.value] || {};
+          selCant.innerHTML = '<option value="">-- Seleccioná cantón --</option>';
+          Object.keys(cantones).forEach(c => selCant.innerHTML += `<option>${c}</option>`);
+          selCant.disabled = !selProv.value;
+          selDist.innerHTML = '<option value="">-- Primero seleccioná cantón --</option>';
+          selDist.disabled = true;
+        });
+        selCant.addEventListener("change", () => {
+          const distritos = (crData[selProv.value] || {})[selCant.value] || [];
+          selDist.innerHTML = '<option value="">-- Seleccioná distrito --</option>';
+          distritos.forEach(d => selDist.innerHTML += `<option>${d}</option>`);
+          selDist.disabled = !selCant.value;
+        });
+
+        document.querySelector("#matchDatosCerrar")?.addEventListener("click", closeModal);
+        document.querySelector("#matchDatosSiguiente")?.addEventListener("click", () => {
+          const nombre = document.querySelector("#matchNombre")?.value.trim();
+          const correo = document.querySelector("#matchCorreo")?.value.trim();
+          const prov = selProv.value;
+          const cant = selCant.value;
+          const dist = selDist.value;
+          if (!nombre || !correo || !prov || !cant || !dist) {
+            document.querySelector("#matchDatosError").style.display = "block"; return;
+          }
+          // Guardar en favoritos con el nuevo código
+          const lista = getFavoritos();
+          lista.push({ id: nuevoCodigo, nombre, telefono: tel, correo, provincia: prov, canton: cant, distrito: dist, created: new Date().toISOString() });
+          saveFavoritos(lista);
+          abrirPaso3Match(nuevoCodigo, tel);
+        });
+      }
+    });
+  });
+
+  // ======= PASO 3: ARTÍCULO + TIEMPO + HORAS =======
+  function abrirPaso3Match(codigo, telefono) {
+    openModal({
+      title: "🔍 Detalles de tu solicitud",
+      bodyHTML: `
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- ARTÍCULO BUSCADO -->
+          <div>
+            <p style="margin:0 0 6px;font-weight:700;">📦 Artículo buscado</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button id="matchBtnSituacion" class="secondary" style="flex:1;padding:10px;border-radius:8px;">Situación</button>
+              <button id="matchBtnNombre" class="secondary" style="flex:1;padding:10px;border-radius:8px;">Nombre del artículo</button>
+            </div>
+            <textarea id="matchArticuloTexto" placeholder="Escribí aquí..." rows="2"
+              style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;display:none;resize:none;"></textarea>
+          </div>
+
+          <!-- TIEMPO ASIGNADO -->
+          <div>
+            <p style="margin:0 0 6px;font-weight:700;">📅 Tiempo asignado</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button id="matchBtnTemporada" class="secondary" style="flex:1;padding:10px;border-radius:8px;">Por temporada</button>
+              <button id="matchBtnDiasFijos" class="secondary" style="flex:1;padding:10px;border-radius:8px;">Días fijos</button>
+            </div>
+            <!-- Temporada: rango de fechas -->
+            <div id="matchTemporadaWrap" style="display:none;gap:8px;flex-wrap:wrap;">
+              <label style="flex:1;min-width:120px;">Inicio<br>
+                <input id="matchFechaInicio" type="date" style="width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" />
+              </label>
+              <label style="flex:1;min-width:120px;">Final<br>
+                <input id="matchFechaFin" type="date" style="width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" />
+              </label>
+            </div>
+            <!-- Días fijos: días del mes 1-31 -->
+            <div id="matchDiasFijosWrap" style="display:none;">
+              <div id="matchDiasGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                ${Array.from({length:31},(_,i)=>`<button type="button" class="match-dia-btn" data-dia="${i+1}"
+                  style="width:38px;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;cursor:pointer;font-size:13px;">${i+1}</button>`).join("")}
+              </div>
+            </div>
+          </div>
+
+          <!-- HORAS PREFERIDAS -->
+          <div>
+            <p style="margin:0 0 6px;font-weight:700;">🕐 Horas preferidas</p>
+            <div id="matchHorasWrap" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <button id="matchAgregarHora" type="button" style="margin-top:6px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.07);color:inherit;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+          </div>
+
+          <p id="matchPaso3Error" style="color:red;display:none;margin:0;">Por favor completá los campos requeridos.</p>
+        </div>
+      `,
+      footerHTML: `
+        <button class="secondary" id="matchPaso3Cerrar">Cancelar</button>
+        <button class="primary" id="matchPaso3Guardar">Guardar solicitud</button>
+      `
+    });
+
+    // --- Artículo: toggle botones ---
+    let tipoArticulo = null;
+    document.querySelector("#matchBtnSituacion")?.addEventListener("click", () => {
+      tipoArticulo = "situacion";
+      document.querySelector("#matchBtnSituacion").style.background = "rgba(90,160,255,0.3)";
+      document.querySelector("#matchBtnNombre").style.background = "";
+      document.querySelector("#matchArticuloTexto").style.display = "block";
+      document.querySelector("#matchArticuloTexto").placeholder = "Describí la situación...";
+    });
+    document.querySelector("#matchBtnNombre")?.addEventListener("click", () => {
+      tipoArticulo = "nombre";
+      document.querySelector("#matchBtnNombre").style.background = "rgba(90,160,255,0.3)";
+      document.querySelector("#matchBtnSituacion").style.background = "";
+      document.querySelector("#matchArticuloTexto").style.display = "block";
+      document.querySelector("#matchArticuloTexto").placeholder = "Nombre del artículo que buscás...";
+    });
+
+    // --- Tiempo: toggle botones ---
+    let tipoTiempo = null;
+    document.querySelector("#matchBtnTemporada")?.addEventListener("click", () => {
+      tipoTiempo = "temporada";
+      document.querySelector("#matchBtnTemporada").style.background = "rgba(90,160,255,0.3)";
+      document.querySelector("#matchBtnDiasFijos").style.background = "";
+      document.querySelector("#matchTemporadaWrap").style.display = "flex";
+      document.querySelector("#matchDiasFijosWrap").style.display = "none";
+    });
+    document.querySelector("#matchBtnDiasFijos")?.addEventListener("click", () => {
+      tipoTiempo = "diasfijos";
+      document.querySelector("#matchBtnDiasFijos").style.background = "rgba(90,160,255,0.3)";
+      document.querySelector("#matchBtnTemporada").style.background = "";
+      document.querySelector("#matchDiasFijosWrap").style.display = "block";
+      document.querySelector("#matchTemporadaWrap").style.display = "none";
+    });
+
+    // --- Días fijos: selección individual ---
+    const diasSeleccionados = new Set();
+    document.querySelector("#matchDiasGrid")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".match-dia-btn");
+      if (!btn) return;
+      const dia = btn.dataset.dia;
+      if (diasSeleccionados.has(dia)) {
+        diasSeleccionados.delete(dia);
+        btn.style.background = "rgba(255,255,255,0.05)";
+        btn.style.borderColor = "rgba(255,255,255,0.2)";
+        btn.style.color = "inherit";
+      } else {
+        diasSeleccionados.add(dia);
+        btn.style.background = "rgba(90,160,255,0.4)";
+        btn.style.borderColor = "rgba(90,160,255,0.8)";
+        btn.style.color = "#fff";
+      }
+    });
+
+    // --- Horas preferidas: agregar franjas (máx 3) ---
+    let horasCount = 0;
+    document.querySelector("#matchAgregarHora")?.addEventListener("click", () => {
+      if (horasCount >= 3) return;
+      horasCount++;
+      const idx = horasCount;
+      const diasSemana = ["L","M","X","J","V","S","D"];
+      const wrap = document.querySelector("#matchHorasWrap");
+      const div = document.createElement("div");
+      div.id = `matchHoraItem${idx}`;
+      div.style.cssText = "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;";
+      div.innerHTML = `
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="flex:1;min-width:100px;">Inicio<br>
+            <input type="time" id="matchHoraInicio${idx}" style="width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" />
+          </label>
+          <label style="flex:1;min-width:100px;">Final<br>
+            <input type="time" id="matchHoraFin${idx}" style="width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(30,35,50,0.9);color:inherit;" />
+          </label>
+          <button type="button" class="match-toggle-dias" data-idx="${idx}"
+            style="margin-top:16px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;cursor:pointer;white-space:nowrap;">📆 Días</button>
+        </div>
+        <div id="matchDiasSemana${idx}" style="display:none;flex-wrap:wrap;gap:6px;">
+          ${diasSemana.map(d=>`<button type="button" class="match-dia-semana" data-idx="${idx}" data-dia="${d}"
+            style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:inherit;cursor:pointer;">${d}</button>`).join("")}
+        </div>
+      `;
+      wrap.appendChild(div);
+      if (horasCount >= 3) document.querySelector("#matchAgregarHora").style.display = "none";
+
+      // Toggle días de la semana
+      div.querySelector(".match-toggle-dias")?.addEventListener("click", () => {
+        const diasWrap = document.querySelector(`#matchDiasSemana${idx}`);
+        diasWrap.style.display = diasWrap.style.display === "none" ? "flex" : "none";
+      });
+
+      // Seleccionar días de la semana
+      div.querySelectorAll(".match-dia-semana").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const activo = btn.dataset.activo === "1";
+          btn.dataset.activo = activo ? "0" : "1";
+          btn.style.background = activo ? "rgba(255,255,255,0.05)" : "rgba(90,160,255,0.4)";
+          btn.style.borderColor = activo ? "rgba(255,255,255,0.2)" : "rgba(90,160,255,0.8)";
+          btn.style.color = activo ? "inherit" : "#fff";
+        });
+      });
+    });
+
+    document.querySelector("#matchPaso3Cerrar")?.addEventListener("click", closeModal);
+    document.querySelector("#matchPaso3Guardar")?.addEventListener("click", () => {
+      const textoArticulo = document.querySelector("#matchArticuloTexto")?.value.trim();
+      if (!tipoArticulo || !textoArticulo || !tipoTiempo) {
+        document.querySelector("#matchPaso3Error").style.display = "block"; return;
+      }
+
+      // Recopilar horas
+      const horas = [];
+      for (let i = 1; i <= horasCount; i++) {
+        const inicio = document.querySelector(`#matchHoraInicio${i}`)?.value;
+        const fin = document.querySelector(`#matchHoraFin${i}`)?.value;
+        const diasAct = [...document.querySelectorAll(`#matchDiasSemana${i} .match-dia-semana[data-activo="1"]`)].map(b=>b.dataset.dia);
+        horas.push({ inicio, fin, dias: diasAct });
+      }
+
+      // Recopilar tiempo
+      let tiempo = {};
+      if (tipoTiempo === "temporada") {
+        tiempo = { tipo: "temporada", inicio: document.querySelector("#matchFechaInicio")?.value, fin: document.querySelector("#matchFechaFin")?.value };
+      } else {
+        tiempo = { tipo: "diasfijos", dias: [...diasSeleccionados] };
+      }
+
+      // Guardar solicitud
+      const solicitudes = loadJSON("match_solicitudes", []);
+      solicitudes.push({ codigo, telefono, tipoArticulo, textoArticulo, tiempo, horas, created: new Date().toISOString() });
+      saveJSON("match_solicitudes", solicitudes);
+
+      closeModal();
+      openModal({
+        title: "✅ ¡Solicitud registrada!",
+        bodyHTML: `<p style="text-align:center;padding:10px 0;">Tu solicitud fue guardada correctamente.<br>Te avisaremos por WhatsApp cuando encontremos tu artículo. 🎯</p>`,
+        footerHTML: `<button class="primary" id="matchFinalCerrar">Cerrar</button>`
+      });
+      document.querySelector("#matchFinalCerrar")?.addEventListener("click", closeModal);
+    });
+  }
+
+  // Función auxiliar: datos CR (reutiliza los mismos del carrito)
+  function obtenerCrData() {
+    return {
+      "San José":{"San José":["Carmen","Merced","Hospital","Catedral","Zapote","San Francisco de Dos Ríos","Uruca","Mata Redonda","Pavas","Hatillo","San Sebastián"],"Escazú":["Escazú","San Antonio","San Rafael"],"Desamparados":["Desamparados","San Miguel","San Juan de Dios","San Rafael Arriba","San Antonio","Frailes","Patarrá","San Cristóbal","Rosario","Damas","San Rafael Abajo","Gravilias","Los Guido"],"Puriscal":["Santiago","Mercedes Sur","Barbacoas","Grifo Alto","San Rafael","Candelarita","Desamparaditos","San Antonio","Chires"],"Tarrazú":["San Marcos","San Lorenzo","San Carlos"],"Aserrí":["Aserrí","Tarbaca","Vuelta de Jorco","San Gabriel","Legua","Monterrey","Salitrillos"],"Mora":["Colón","Guayabo","Tabarcia","Piedras Negras","Picagres","Jaris","Quitirrisí"],"Goicoechea":["Guadalupe","San Francisco","Calle Blancos","Mata de Plátano","Ipís","Rancho Redondo","Purral"],"Santa Ana":["Santa Ana","Salitral","Pozos","Uruca","Piedades","Brasil"],"Alajuelita":["Alajuelita","San Josecito","San Antonio","Concepción","San Felipe"],"Vásquez de Coronado":["San Isidro","San Rafael","Dulce Nombre de Jesús","Patalillo","Cascajal"],"Acosta":["San Ignacio","Guaitil","Palmichal","Cangrejal","Sabanillas"],"Tibás":["San Juan","Cinco Esquinas","Anselmo Llorente","León XIII","Colmena"],"Moravia":["San Vicente","San Jerónimo","La Trinidad"],"Montes de Oca":["San Pedro","Sabanilla","Mercedes","San Rafael"],"Turrubares":["San Pablo","San Pedro","San Juan de Mata","San Luis","Carara"],"Dota":["Santa María","Jardín","Copey"],"Curridabat":["Curridabat","Granadilla","Sánchez","Tirrases"],"Pérez Zeledón":["San Isidro de El General","El General","Daniel Flores","Rivas","San Pedro","Platanares","Pejibaye","Cajón","Barú","Río Nuevo","Páramo","La Amistad"],"León Cortés Castro":["San Pablo","San Andrés","Llano Bonito","San Isidro","Santa Cruz","San Antonio"]},
+      "Alajuela":{"Alajuela":["Alajuela","San José","Carrizal","San Antonio","Guácima","San Isidro","Sabanilla","San Rafael","Río Segundo","Desamparados","Turrúcares","Tambor","Garita","Sarapiquí"],"San Ramón":["San Ramón","Santiago","San Juan","Piedades Norte","Piedades Sur","San Rafael","San Isidro","Ángeles","Alfaro","Volio","Concepción","Zapotal","Peñas Blancas","San Lorenzo"],"Grecia":["Grecia","San Isidro","San José","San Roque","Tacares","Río Cuarto","Puente de Piedra","Bolivar"],"San Mateo":["San Mateo","Desmonte","Jesús María","Labrador"],"Atenas":["Atenas","Jesús","Mercedes","San Isidro","Concepción","San José","Santa Eulalia","Escobal"],"Naranjo":["Naranjo","San Miguel","San José","Cirrí Sur","San Jerónimo","San Juan","El Rosario","Palmitos"],"Palmares":["Palmares","Zaragoza","Buenos Aires","Santiago","Candelaria","Esquipulas","La Granja"],"Poás":["San Juan","San Luis","Carrillos","Sabana Redonda"],"Orotina":["Orotina","El Mastate","Hacienda Vieja","Coyolar","La Ceiba"],"San Carlos":["Quesada","Florencia","Buenavista","Aguas Zarcas","Venecia","Pital","La Fortuna","La Tigra","La Palmera","Venado","Cutris","Monterrey","Pocosol"],"Zarcero":["Zarcero","Laguna","Tapesco","Guadalupe","Palmira","Zapote","Brisas"],"Sarchí":["Sarchí Norte","Sarchí Sur","Toro Amarillo","San Pedro","Rodríguez"],"Upala":["Upala","Aguas Claras","San José","Bijagua","Delicias","Dos Ríos","Yolillal","Canalete"],"Los Chiles":["Los Chiles","Caño Negro","El Amparo","San Jorge"],"Guatuso":["San Rafael","Buenavista","Cote","Katira"],"Río Cuarto":["Río Cuarto","Santa Rita","Santa Isabel"]},
+      "Cartago":{"Cartago":["Oriental","Occidental","Carmen","San Nicolás","Aguacaliente","Guadalupe","Corralillo","Tierra Blanca","Dulce Nombre","Llano Grande","Quebradilla"],"Paraíso":["Paraíso","Santiago","Orosi","Cachí","Llanos de Santa Lucía"],"La Unión":["Tres Ríos","San Diego","San Juan","San Rafael","Concepción","Dulce Nombre","San Ramón","Río Azul"],"Jiménez":["Juan Viñas","Tucurrique","Pejibaye"],"Turrialba":["Turrialba","La Suiza","Peralta","Santa Cruz","Santa Teresita","Pavones","Tuis","Tayutic","Santa Rosa","Tres Equis","La Isabel","Chirripó"],"Alvarado":["Pacayas","Cervantes","Capellades"],"Oreamuno":["San Rafael","Cot","Potrero Cerrado","Cipreses","Santa Rosa"],"El Guarco":["El Tejar","San Isidro","Tobosi","Patio de Agua"]},
+      "Heredia":{"Heredia":["Heredia","Mercedes","San Francisco","Ulloa","Varablanca"],"Barva":["Barva","San Pedro","San Pablo","San Roque","Santa Lucía","San José de la Montaña"],"Santo Domingo":["Santo Domingo","San Vicente","San Miguel","Paracito","Santo Tomás","Santa Rosa","Tures","Pará"],"Santa Bárbara":["Santa Bárbara","San Pedro","San Juan","Jesús","Santo Domingo","Puraba"],"San Rafael":["San Rafael","San Josecito","Santiago","Ángeles","Concepción"],"San Isidro":["San Isidro","San José","Concepción","San Francisco"],"Belén":["San Antonio","La Ribera","La Asunción"],"Flores":["San Joaquín","Barrantes","Llorente"],"San Pablo":["San Pablo","Rincón de Sabanilla"],"Sarapiquí":["Puerto Viejo","La Virgen","Las Horquetas","Llanuras del Gaspar","Cureña"]},
+      "Guanacaste":{"Liberia":["Liberia","Cañas Dulces","Mayorga","Nacascolo","Curubandé"],"Nicoya":["Nicoya","Mansión","San Antonio","Quebrada Honda","Sámara","Nosara","Belén de Nosarita"],"Santa Cruz":["Santa Cruz","Bolsón","Veintisiete de Abril","Tempate","Cartagena","Cuajiniquil","Diriá","Cabo Velas","Tamarindo"],"Bagaces":["Bagaces","La Mansion","San Juan de Kiucha","Fortuna"],"Carrillo":["Filadelfia","Palmira","Sardinal","Belén"],"Cañas":["Cañas","Palmira","San Miguel","Bebedero","Porozal"],"Abangares":["Las Juntas","Sierra","San Juan","Colorado"]},
+      "Puntarenas":{"Puntarenas":["Puntarenas","Pitahaya","Chomes","Lepanto","Paquera","Manzanillo","Guacimal","Barranca","Invu Los Ángeles","Chacarita","El Roble","Arancibia"],"Esparza":["Espíritu Santo","San Juan Grande","Macacona","San Rafael","San Jerónimo","Caldera"],"Buenos Aires":["Buenos Aires","Volcán","Potrero Grande","Boruca","Pilas","Colinas","Chánguena","Biolley","Brunka"],"Montes de Oro":["Miramar","La Unión","San Isidro"],"Osa":["Puerto Cortés","Palmar","Sierpe","Bahía Ballena","Piedras Blancas","Bahía Drake"],"Quepos":["Quepos","Savegre","Naranjito"],"Golfito":["Golfito","Puerto Jiménez","Guaycará","Pavón"],"Coto Brus":["San Vito","Sabalito","Aguabuena","Limoncito","Pittier","Gutiérrez Braun"],"Parrita":["Parrita"],"Corredores":["Corredor","La Cuesta","Canoas","Laurel"],"Garabito":["Jacó","Tárcoles"]},
+      "Limón":{"Limón":["Limón","Valle La Estrella","Río Blanco","Matama"],"Pococí":["Guápiles","Jiménez","Rita","Roxana","Cariari","Colorado","La Colonia"],"Siquirres":["Siquirres","Pacuarito","Florida","Germania","El Cairo","Alegría","Reventazón"],"Talamanca":["Bratsi","Sixaola","Cahuita","Telire"],"Matina":["Matina","Batán","Carrandi"],"Guácimo":["Guácimo","Mercedes","Pocora","Río Jiménez","Duacarí"]}
+    };
+  }
     document.querySelector("#matchAdministrar")?.addEventListener("click", () => {
       alert("Administración de solicitudes próximamente disponible.");
     });
