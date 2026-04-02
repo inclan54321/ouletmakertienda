@@ -2712,4 +2712,37 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+
+document.querySelector("#matchBtn")?.addEventListener("click", () => {
+  openModal({
+    title: "¿Qué es Match? 🎯",
+    bodyHTML: `
+      <div style="display:flex; flex-direction:column; gap:12px; color:rgba(242,245,247,0.9);">
+        <p>¿Buscás un artículo específico pero no lo encontrás en nuestro catálogo? <strong>¡Match es para vos!</strong></p>
+        <p>Registrá el producto que estás buscando y nosotros lo rastreamos por vos. Cada vez que visitamos un Outlet, revisamos tu solicitud — si lo encontramos, te enviamos una foto por WhatsApp al instante.</p>
+        <div style="background:rgba(90,160,255,0.1); border:1px solid rgba(90,160,255,0.3); border-radius:12px; padding:14px;">
+          <p style="margin:0 0 8px; font-weight:700;">¿Cómo funciona?</p>
+          <p style="margin:4px 0;">📝 Completá el formulario con el artículo que buscás y tu número de WhatsApp</p>
+          <p style="margin:4px 0;">👀 Nosotros lo buscamos en cada visita a los outlets</p>
+          <p style="margin:4px 0;">📲 Si lo encontramos, te mandamos una foto por WhatsApp</p>
+          <p style="margin:4px 0;">⏱️ Tenés <strong>1 minuto</strong> para responder — si no contestás, pasamos al siguiente en la lista</p>
+          <p style="margin:4px 0;">✅ Si aceptás, te contactamos para coordinar los detalles de la compra</p>
+        </div>
+        <p style="background:rgba(255,200,0,0.1); border:1px solid rgba(255,200,0,0.3); border-radius:10px; padding:10px; margin:0;">
+          ⚠️ Es importante que llenés bien el formulario, especialmente tu número de WhatsApp, para que podamos contactarte a tiempo.
+        </p>
+      </div>
+    `,
+    footerHTML: `
+      <button class="secondary" id="matchClose">Cerrar</button>
+      <button class="primary" id="matchForm">Quiero registrarme</button>
+    `
+  });
+  document.querySelector("#matchClose")?.addEventListener("click", closeModal);
+  document.querySelector("#matchForm")?.addEventListener("click", () => {
+    closeModal();
+    alert("Formulario de Match próximamente disponible.");
+  });
+});
+
 })();
