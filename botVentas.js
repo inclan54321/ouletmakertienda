@@ -130,8 +130,7 @@ async function preguntarDeepSeek(prompt) {
     const body = JSON.stringify({
       model: "deepseek-chat",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 500,
-      tools: [{ type: "web_search" }]
+      max_tokens: 500
     });
     const req = https.request({
       hostname: "api.deepseek.com",
