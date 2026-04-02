@@ -10,6 +10,7 @@ const sgMail = require("@sendgrid/mail");
 
 // ── Iniciar el bot ──────────────────────────────────
 require("./bot");
+require("./botRastreo");
 const { registrarOrden } = require("./botVentas");
 
 
