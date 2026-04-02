@@ -2735,13 +2735,28 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
     `,
     footerHTML: `
       <button class="secondary" id="matchClose">Cerrar</button>
-      <button class="primary" id="matchForm">Quiero registrarme</button>
+      <button class="primary" id="matchNext">Siguiente</button>
     `
   });
   document.querySelector("#matchClose")?.addEventListener("click", closeModal);
-  document.querySelector("#matchForm")?.addEventListener("click", () => {
-    closeModal();
-    alert("Formulario de Match próximamente disponible.");
+  document.querySelector("#matchNext")?.addEventListener("click", () => {
+    openModal({
+      title: "Match 🎯",
+      bodyHTML: `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <button class="primary" id="matchRegistrar" style="padding:16px; font-size:16px;">📝 Registrar solicitud</button>
+          <button class="secondary" id="matchAdministrar" style="padding:16px; font-size:16px;">⚙️ Administrar solicitudes</button>
+        </div>
+      `,
+      footerHTML: `<button class="secondary" id="matchBack">Cerrar</button>`
+    });
+    document.querySelector("#matchBack")?.addEventListener("click", closeModal);
+    document.querySelector("#matchRegistrar")?.addEventListener("click", () => {
+      alert("Formulario de registro próximamente disponible.");
+    });
+    document.querySelector("#matchAdministrar")?.addEventListener("click", () => {
+      alert("Administración de solicitudes próximamente disponible.");
+    });
   });
 });
 
