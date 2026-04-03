@@ -290,16 +290,34 @@ botVentas.onText(/\/start orden_(.+)/, async (msg, match) => {
   conversaciones[ordenId].clienteChatId = chatId;
 
   if (esRegreso) {
-    // Cliente regresa — IA retoma directamente
     botVentas.sendMessage(chatId,
       "👋 ¡Bienvenido de vuelta a *Outlet Maker*! Continuamos donde lo dejamos. 🙌",
       { parse_mode: "Markdown" }
     );
     botVentas.sendMessage(ADMIN_CHAT_ID,
-      `🔄 *Cliente retomó la conversación*\nOrden #${ordenId} — La IA tiene el historial y retoma automáticamente.`,
+      `🔄 *Cliente retomó la conversación*\nOrden #${ordenId} — La IA retoma con historial de ${historialGuardado.length} mensajes.`,
       { parse_mode: "Markdown" }
     );
     resetearTimerInactividad(ordenId);
+
+    // IA saluda automáticamente retomando el hilo
+    try {
+      const orden = ordenesCache[ordenId] || {};
+      const promptRetoma =
+        `Sos un asesor de ventas de Outlet Maker, Costa Rica.\n` +
+        `El cliente acaba de retomar la conversación después de un tiempo de inactividad.\n\n` +
+        `Historial anterior:\n` +
+        `${historialGuardado.map(h => `${h.rol === "cliente" ? "Cliente" : "Asesor"}: ${h.texto}`).join("\n")}\n\n` +
+        `Saludalo brevemente recordándole en qué quedaron y preguntale cómo podés ayudarlo.\n` +
+        `Respondé SOLO el mensaje del asesor, sin etiquetas.`;
+
+      const respuestaRetoma = await preguntarDeepSeek(promptRetoma);
+      await botVentas.sendMessage(chatId, respuestaRetoma);
+      conversaciones[ordenId].historial.push({ rol: "ia", texto: respuestaRetoma });
+    } catch (e) {
+      console.error("Error IA retoma:", e.message);
+    }
+
   } else {
     botVentas.sendMessage(chatId,
       "👋 ¡Hola! Gracias por tu compra en *Outlet Maker*.\n" +
