@@ -215,6 +215,7 @@ input[type="file"]{
    background-size: contain;
     background-position: center top;
   background-repeat: no-repeat;
+   background-attachment: fixed;
 
   border-radius: 0;
   overflow-y: auto;
