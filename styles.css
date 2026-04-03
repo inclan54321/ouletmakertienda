@@ -21,9 +21,9 @@ body{
 .hidden{ display: none !important; }
 
 .container{
-  width: min(1100px, 92vw);
-  margin: 0 auto;
-  padding: 18px 0 30px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 button{
@@ -205,17 +205,18 @@ input[type="file"]{
 
 /* MENÚ */
 #viewMenu:not(.hidden){
-  height: auto;
-  display: grid;
-  justify-content: flex-start;
-  padding-top: 100px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 60px;
 
   background-image: url("./assets/fondo.jpeg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 
-  border-radius: 22px;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
 }
@@ -230,7 +231,7 @@ input[type="file"]{
   content:"";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.15);
   pointer-events: none;
   z-index: 0;
 }
