@@ -213,7 +213,7 @@ input[type="file"]{
 
   background-image: url("./assets/fondo.jpeg");
   background-size: cover;
-  background-position: center;
+  background-position: center 3cm;
   background-repeat: no-repeat;
 
   border-radius: 0;
