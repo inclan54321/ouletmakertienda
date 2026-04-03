@@ -217,7 +217,7 @@ input[type="file"]{
   background-repeat: no-repeat;
 
   border-radius: 0;
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
