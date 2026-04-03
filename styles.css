@@ -214,7 +214,7 @@ input[type="file"]{
   width: 100vw;
 
   background-image: url("./assets/fondo.jpeg");
-   background-size: cover;
+   background-size: 100% auto;
     background-position: center 0cm;
   background-repeat: no-repeat;
    
@@ -362,7 +362,7 @@ input[type="file"]{
     grid-template-columns: 1fr;
     grid-template-rows: none;
     aspect-ratio: auto;
-    background-size: cover;
+    background-size: 100% auto;
   }
 
   .menu-actions.menu-grid .menu-tile__title,
