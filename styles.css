@@ -302,7 +302,7 @@ input[type="file"]{
   content:"";
   position:absolute;
   inset:0;
-  background: rgba(0,0,0,0.16);
+  background: transparent;
   pointer-events:none;
   z-index: 0;
 }
