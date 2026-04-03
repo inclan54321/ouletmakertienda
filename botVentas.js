@@ -73,8 +73,16 @@ async function analizarImagenGemini(imageBase64, mimeType, contexto) {
       res.on("end", () => {
         try {
           const j = JSON.parse(data);
+          if (!j.candidates || !j.candidates[0]) {
+            console.error("❌ Gemini sin candidates:", JSON.stringify(j).slice(0, 500));
+            reject(new Error("Gemini no devolvió candidates: " + JSON.stringify(j).slice(0, 200)));
+            return;
+          }
           resolve(j.candidates[0].content.parts[0].text.trim());
-        } catch { reject(new Error("Error parseando respuesta Gemini")); }
+        } catch (e) {
+          console.error("❌ Error parseando Gemini:", e.message, "| Raw:", data.slice(0, 500));
+          reject(new Error("Error parseando respuesta Gemini"));
+        }
       });
     });
     req.on("error", reject);

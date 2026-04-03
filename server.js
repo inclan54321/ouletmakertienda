@@ -361,4 +361,10 @@ gangaPrice: Math.round(precio * 0.30),
       res.end(data);
     });
   })
-  .listen(PORT, "0.0.0.0", () => console.log("Servidor en puerto " + PORT));
+  .listen(PORT, "0.0.0.0", () => {
+    console.log("Servidor en puerto " + PORT);
+    // Ping cada 4 minutos para mantener el servidor despierto
+    setInterval(() => {
+      http.get(`http://localhost:${PORT}/api/env-check`, () => {}).on("error", () => {});
+    }, 4 * 60 * 1000);
+  });
