@@ -205,7 +205,7 @@ input[type="file"]{
 
 /* MENÚ */
 #viewMenu:not(.hidden){
-  min-height: 100vh;
+  min-height: 200vh;
   display: flex;
   justify-content: center;
   align-items: center;
