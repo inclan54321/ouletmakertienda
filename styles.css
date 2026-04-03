@@ -212,8 +212,8 @@ input[type="file"]{
   padding-top: 60px;
 
   background-image: url("./assets/fondo.jpeg");
-  background-size: cover;
-  background-position: center 0cm;
+   background-size: contain;
+    background-position: center top;
   background-repeat: no-repeat;
 
   border-radius: 0;
