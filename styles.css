@@ -46,7 +46,7 @@ button.secondary{
 
 .language-selector{
   position: absolute;
-  top: 17px;
+  top: 25px;
   right: 112px;
   z-index: 1000;
 }
@@ -101,7 +101,7 @@ button.secondary{
 
 .home-btn{
   position: absolute;
-  top: 17px;
+  top: 25px;
   left: 14px;
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.16);
@@ -115,7 +115,7 @@ button.secondary{
 
 .fav-btn{
   position: absolute;
-  top: 17px;
+  top: 25px;
   right: 62px;
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.16);
@@ -131,7 +131,7 @@ button.secondary{
 }
 .cart-btn{
   position: absolute;
-  top: 17px;
+  top: 25px;
   right: 12px;
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.16);
