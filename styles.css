@@ -762,7 +762,7 @@ color: #ffffff;
 .search-bar-wrap {
   position: absolute;
   top: 50px;
-  left: 60%;
+  left: 80%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
