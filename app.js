@@ -2724,32 +2724,77 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
 document.querySelector("#matchBtn")?.addEventListener("click", () => {
-  openModal({
-    title: "¿Qué es Match? 🎯",
-    bodyHTML: `
-      <div style="display:flex; flex-direction:column; gap:12px; color:rgba(242,245,247,0.9);">
-        <p>¿Buscás un artículo específico pero no lo encontrás en nuestro catálogo? <strong>¡Match es para vos!</strong></p>
-        <p>Registrá el producto que estás buscando y nosotros lo rastreamos por vos. Cada vez que visitamos un Outlet, revisamos tu solicitud — si lo encontramos, te enviamos una foto por WhatsApp al instante.</p>
-        <div style="background:rgba(90,160,255,0.1); border:1px solid rgba(90,160,255,0.3); border-radius:12px; padding:14px;">
-          <p style="margin:0 0 8px; font-weight:700;">¿Cómo funciona?</p>
-          <p style="margin:4px 0;">📝 Completá el formulario con el artículo que buscás y tu número de WhatsApp</p>
-          <p style="margin:4px 0;">👀 Nosotros lo buscamos en cada visita a los outlets</p>
-          <p style="margin:4px 0;">📲 Si lo encontramos, te mandamos una foto por WhatsApp</p>
-          <p style="margin:4px 0;">⏱️ Tenés <strong>1 minuto</strong> para responder — si no contestás, pasamos al siguiente en la lista</p>
-          <p style="margin:4px 0;">✅ Si aceptás, te contactamos para coordinar los detalles de la compra</p>
-        </div>
-        <p style="background:rgba(255,200,0,0.1); border:1px solid rgba(255,200,0,0.3); border-radius:10px; padding:10px; margin:0;">
-          ⚠️ Es importante que llenés bien el formulario, especialmente tu número de WhatsApp, para que podamos contactarte a tiempo.
-        </p>
+  const existingIntro = document.getElementById("matchIntroModal");
+  if (existingIntro) existingIntro.remove();
+
+  const hostIntro = document.createElement("div");
+  hostIntro.id = "matchIntroModal";
+  hostIntro.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);";
+
+  hostIntro.innerHTML = `
+    <style>
+      @keyframes matchFadeIn { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
+      #matchIntroModal .m-box {
+        background:linear-gradient(145deg,rgba(10,20,15,0.97),rgba(5,15,10,0.99));
+        border:1px solid rgba(0,255,120,0.25);border-radius:20px;
+        box-shadow:0 0 40px rgba(0,255,100,0.12),0 20px 60px rgba(0,0,0,0.7);
+        width:min(560px,96vw);max-height:90vh;overflow-y:auto;
+        padding:32px 28px 24px;box-sizing:border-box;
+        color:#f0f5f2;font-family:system-ui,-apple-system,sans-serif;
+        position:relative;animation:matchFadeIn 0.28s cubic-bezier(.22,.68,0,1.2);
+      }
+      #matchIntroModal .m-close {
+        position:absolute;top:14px;right:16px;
+        background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+        color:#aaa;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:1rem;
+      }
+      #matchIntroModal .m-close:hover{background:rgba(255,255,255,0.14);color:#fff;}
+      #matchIntroModal .m-title {
+        font-size:1.5rem;font-weight:800;margin:0 0 6px;
+        color:#fff;display:flex;align-items:center;gap:10px;
+      }
+      #matchIntroModal .glow{color:#00ff7f;text-shadow:0 0 12px rgba(0,255,120,0.7);}
+      #matchIntroModal .m-desc{color:rgba(240,245,242,0.78);font-size:0.97rem;line-height:1.65;margin:0 0 20px;}
+      #matchIntroModal .m-steps-title{font-size:0.85rem;font-weight:700;letter-spacing:1px;color:#00ff7f;text-transform:uppercase;margin:0 0 10px;text-shadow:0 0 8px rgba(0,255,120,0.4);}
+      #matchIntroModal .m-steps{background:rgba(0,255,100,0.05);border:1px solid rgba(0,255,100,0.15);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+      #matchIntroModal .m-step{display:flex;align-items:flex-start;gap:12px;font-size:0.93rem;color:rgba(240,245,242,0.88);line-height:1.5;}
+      #matchIntroModal .m-step .ico{font-size:1.1rem;min-width:24px;text-align:center;margin-top:1px;}
+      #matchIntroModal .m-warn{background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.28);border-radius:12px;padding:12px 16px;font-size:0.88rem;color:rgba(255,230,120,0.92);display:flex;gap:10px;align-items:flex-start;margin-bottom:22px;line-height:1.5;}
+      #matchIntroModal .m-footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+      #matchIntroModal .m-btn-close{padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;font-size:0.93rem;}
+      #matchIntroModal .m-btn-close:hover{background:rgba(255,255,255,0.12);}
+      #matchIntroModal .m-btn-next{padding:10px 24px;border-radius:12px;border:1px solid rgba(0,255,120,0.5);background:rgba(0,200,80,0.18);color:#00ff7f;font-weight:700;cursor:pointer;font-size:0.93rem;box-shadow:0 0 16px rgba(0,255,100,0.25);}
+      #matchIntroModal .m-btn-next:hover{background:rgba(0,220,90,0.28);box-shadow:0 0 28px rgba(0,255,100,0.45);}
+    </style>
+    <div class="m-box">
+      <button class="m-close" id="matchIntroCerrarX">✕</button>
+      <div class="m-title"><span class="glow">⚡</span> ¿Qué es <span class="glow" style="margin-left:6px;">Match?</span></div>
+      <p class="m-desc">¿Buscás un artículo específico pero no lo encontrás en nuestro catálogo? <strong style="color:#00ff7f;">¡Match es para vos!</strong><br>
+      Registrá el producto que buscás y nosotros lo rastreamos. Cada vez que visitamos un Outlet, revisamos tu solicitud — si lo encontramos, te enviamos una foto por WhatsApp.</p>
+      <div class="m-steps-title">¿Cómo funciona?</div>
+      <div class="m-steps">
+        <div class="m-step"><span class="ico">📝</span><span>Completá el formulario con el artículo que buscás y tu número de WhatsApp</span></div>
+        <div class="m-step"><span class="ico">🔍</span><span>Nosotros lo buscamos en cada visita a los outlets</span></div>
+        <div class="m-step"><span class="ico">📲</span><span>Si lo encontramos, te mandamos una foto por WhatsApp</span></div>
+        <div class="m-step"><span class="ico">⏱️</span><span>Tenés <strong style="color:#00ff7f;">1 minuto</strong> para responder — si no contestás, pasamos al siguiente</span></div>
+        <div class="m-step"><span class="ico">✅</span><span>Si aceptás, te contactamos para coordinar los detalles de la compra</span></div>
       </div>
-    `,
-    footerHTML: `
-      <button class="secondary" id="matchClose">Cerrar</button>
-      <button class="primary" id="matchNext">Siguiente</button>
-    `
-  });
-  document.querySelector("#matchClose")?.addEventListener("click", closeModal);
-  document.querySelector("#matchNext")?.addEventListener("click", () => {
+      <div class="m-warn"><span style="font-size:1.1rem;">⚠️</span><span>Es importante que llenés bien el formulario, especialmente tu número de WhatsApp, para que podamos contactarte a tiempo.</span></div>
+      <div class="m-footer">
+        <button class="m-btn-close" id="matchIntroCerrar2">Cerrar</button>
+        <button class="m-btn-next" id="matchIntroSiguiente">Siguiente →</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(hostIntro);
+  const cerrarIntro = () => hostIntro.remove();
+  document.getElementById("matchIntroCerrarX").addEventListener("click", cerrarIntro);
+  document.getElementById("matchIntroCerrar2").addEventListener("click", cerrarIntro);
+  hostIntro.addEventListener("click", (e) => { if (e.target === hostIntro) cerrarIntro(); });
+
+  document.getElementById("matchIntroSiguiente").addEventListener("click", () => {
+    cerrarIntro();
     const existingM2 = document.getElementById("matchMenuModal");
     if (existingM2) existingM2.remove();
 
