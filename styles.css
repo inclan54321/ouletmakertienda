@@ -801,3 +801,22 @@ color: #ffffff;
 .search-btn:hover {
   background: rgba(255,255,255,0.15);
 }
+
+/* CATEGORIAS */
+.cat-btn {
+  position: absolute;
+  top: 200px;
+  left: 170px;
+  z-index: 1000;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+.cat-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
