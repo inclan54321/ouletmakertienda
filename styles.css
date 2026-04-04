@@ -99,7 +99,7 @@ button.secondary{
 }
 
 .home-btn{
-  position: fixed;
+  position: absolute;
   top: 14px;
   left: 14px;
   z-index: 1000;
