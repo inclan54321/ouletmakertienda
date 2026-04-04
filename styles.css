@@ -208,27 +208,21 @@ input[type="file"]{
 #viewMenu:not(.hidden){
   min-height: 200vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: flex-start;
   padding-top: 60px;
   height: auto;
   width: 100vw;
 
   background-image: url("./assets/fondo.jpeg");
-   background-size: 100% auto;
-    background-position: center 0cm;
+  background-size: 100% auto;
+  background-position: center 0cm;
   background-repeat: no-repeat;
-   
 
   border-radius: 0;
   overflow-y: visible;
   position: relative;
-}
-
-#viewMenu:not(.hidden){
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 #viewMenu:not(.hidden)::before{
