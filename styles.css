@@ -44,7 +44,7 @@ button.secondary{
 }
 
 .language-selector{
-  position: fixed;
+  position: absolute;
   top: 14px;
   right: 112px;
   z-index: 1000;
@@ -113,7 +113,7 @@ button.secondary{
 }
 
 .fav-btn{
-  position: fixed;
+  position: absolute;
   top: 14px;
   right: 62px;
   z-index: 1000;
