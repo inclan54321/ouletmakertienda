@@ -3111,4 +3111,34 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
   });
 });
 
+
+// Carrusel
+(function(){
+  const track = document.getElementById('carouselTrack');
+  const prev  = document.getElementById('carouselPrev');
+  const next  = document.getElementById('carouselNext');
+  if(!track || !prev || !next) return;
+  const items = track.querySelectorAll('.carousel-item');
+  let current = 0;
+  const visible = 5;
+  const max = items.length - visible;
+
+  function move(){
+    const itemW = items[0].offsetWidth + 14;
+    track.style.transform = `translateX(-${current * itemW}px)`;
+  }
+
+  prev.addEventListener('click', function(){
+    current = Math.max(0, current - 1);
+    move();
+  });
+  next.addEventListener('click', function(){
+    current = Math.min(max, current + 1);
+    move();
+  });
+})();
+
+
+
+
 })();
