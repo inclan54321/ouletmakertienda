@@ -129,7 +129,7 @@ button.secondary{
   background: rgba(240,192,64,0.15);
 }
 .cart-btn{
-  position: fixed;
+  position: absolute;
   top: 14px;
   right: 12px;
   z-index: 1000;
@@ -675,7 +675,7 @@ color: #ffffff;
 
 
 .match-btn {
-  position: fixed;
+  position: absolute;
   top: 80px;
   right: 70px;
   width: 20px;
