@@ -2163,6 +2163,16 @@ document.querySelector("#btnCatalog")?.addEventListener("click", () => {
   renderCatalog();
 });
 
+document.querySelector("#catBtn")?.addEventListener("click", () => {
+  openCatalogNoticeOncePerLoad();
+  showView("catalog");
+  state.catalog.categoryId = null;
+  state.catalog.subcategoryId = null;
+  state.catalog.mode = "categories";
+  state.catalog.page = 1;
+  renderCatalog();
+});
+
 let auctionNoticeShownThisLoad = false;
 
 function openAuctionNoticeOncePerLoad() {
