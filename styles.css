@@ -761,7 +761,7 @@ color: #ffffff;
 /* BUSCADOR */
 .search-bar-wrap {
   position: absolute;
-  top: 1cm;
+  top: -11cm;
   left: 70%;
   transform: translateX(-50%);
   display: flex;
