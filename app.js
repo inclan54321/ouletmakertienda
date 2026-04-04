@@ -3175,4 +3175,10 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
   });
 })();
 
+document.querySelector("#auctionBtn")?.addEventListener("click", () => {
+  openAuctionNoticeOncePerLoad();
+  showView("auction");
+  renderAuction();
+});
+
 })();
