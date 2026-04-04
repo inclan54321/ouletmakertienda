@@ -823,7 +823,7 @@ color: #ffffff;
 
 .auction-btn {
   position: absolute;
-  top: -100px;
+  top: -90px;
   left: calc(170px + 4cm + 100px);
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.16);
