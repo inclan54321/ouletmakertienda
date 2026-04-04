@@ -46,7 +46,7 @@ button.secondary{
 
 .language-selector{
   position: absolute;
-  top: 25px;
+  top: 200px;
   right: 112px;
   z-index: 1000;
 }
