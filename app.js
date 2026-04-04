@@ -2750,16 +2750,87 @@ document.querySelector("#matchBtn")?.addEventListener("click", () => {
   });
   document.querySelector("#matchClose")?.addEventListener("click", closeModal);
   document.querySelector("#matchNext")?.addEventListener("click", () => {
-    openModal({
-      title: "Match 🎯",
-      bodyHTML: `
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <button class="primary" id="matchRegistrar" style="padding:16px; font-size:16px;">📝 Registrar solicitud</button>
-          <button class="secondary" id="matchAdministrar" style="padding:16px; font-size:16px;">⚙️ Administrar solicitudes</button>
-        </div>
-      `,
-      footerHTML: `<button class="secondary" id="matchBack">Cerrar</button>`
-    });
+    const existingM2 = document.getElementById("matchMenuModal");
+    if (existingM2) existingM2.remove();
+
+    const hostM2 = document.createElement("div");
+    hostM2.id = "matchMenuModal";
+    hostM2.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);";
+
+    hostM2.innerHTML = `
+      <style>
+        #matchMenuModal .mm-box {
+          background: linear-gradient(145deg, rgba(10,20,15,0.97), rgba(5,15,10,0.99));
+          border: 1px solid rgba(0,255,120,0.25);
+          border-radius: 20px;
+          box-shadow: 0 0 40px rgba(0,255,100,0.12), 0 20px 60px rgba(0,0,0,0.7);
+          width: min(420px, 96vw);
+          padding: 32px 28px 24px;
+          box-sizing: border-box;
+          color: #f0f5f2;
+          font-family: system-ui, -apple-system, sans-serif;
+          position: relative;
+          animation: matchFadeIn 0.28s cubic-bezier(.22,.68,0,1.2);
+        }
+        #matchMenuModal .mm-title {
+          font-size:1.4rem;font-weight:800;margin:0 0 20px;
+          color:#fff;display:flex;align-items:center;gap:10px;
+        }
+        #matchMenuModal .mm-title span.glow {
+          color:#00ff7f;text-shadow:0 0 12px rgba(0,255,120,0.7);
+        }
+        #matchMenuModal .mm-close {
+          position:absolute;top:14px;right:16px;
+          background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          color:#aaa;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:1rem;
+        }
+        #matchMenuModal .mm-close:hover { background:rgba(255,255,255,0.14);color:#fff; }
+        #matchMenuModal .mm-btn-primary {
+          width:100%;padding:16px;border-radius:14px;margin-bottom:12px;
+          border:1px solid rgba(0,255,120,0.4);
+          background:rgba(0,200,80,0.15);
+          color:#00ff7f;font-weight:700;font-size:1rem;cursor:pointer;
+          box-shadow:0 0 16px rgba(0,255,100,0.2);
+          transition:background 0.2s,box-shadow 0.2s;
+          display:flex;align-items:center;justify-content:center;gap:10px;
+        }
+        #matchMenuModal .mm-btn-primary:hover {
+          background:rgba(0,220,90,0.25);
+          box-shadow:0 0 28px rgba(0,255,100,0.4);
+        }
+        #matchMenuModal .mm-btn-secondary {
+          width:100%;padding:16px;border-radius:14px;margin-bottom:12px;
+          border:1px solid rgba(255,255,255,0.12);
+          background:rgba(255,255,255,0.05);
+          color:rgba(240,245,242,0.75);font-size:1rem;cursor:pointer;
+          transition:background 0.2s;
+          display:flex;align-items:center;justify-content:center;gap:10px;
+        }
+        #matchMenuModal .mm-btn-secondary:hover { background:rgba(255,255,255,0.10); }
+        #matchMenuModal .mm-btn-close {
+          width:100%;padding:10px;border-radius:12px;margin-top:4px;
+          border:1px solid rgba(255,255,255,0.10);
+          background:transparent;color:#666;cursor:pointer;font-size:0.9rem;
+          transition:color 0.2s;
+        }
+        #matchMenuModal .mm-btn-close:hover { color:#aaa; }
+      </style>
+
+      <div class="mm-box">
+        <button class="mm-close" id="matchMenuCerrarX">✕</button>
+        <div class="mm-title"><span class="glow">⚡</span> Match <span class="glow">🎯</span></div>
+        <button class="mm-btn-primary" id="matchRegistrar">📝 Registrar solicitud</button>
+        <button class="mm-btn-secondary" id="matchAdministrar">⚙️ Administrar solicitudes</button>
+        <button class="mm-btn-close" id="matchMenuCerrar">Cerrar</button>
+      </div>
+    `;
+
+    document.body.appendChild(hostM2);
+
+    const cerrarM2 = () => hostM2.remove();
+    document.getElementById("matchMenuCerrarX").addEventListener("click", cerrarM2);
+    document.getElementById("matchMenuCerrar").addEventListener("click", cerrarM2);
+    hostM2.addEventListener("click", (e) => { if (e.target === hostM2) cerrarM2(); });
     document.querySelector("#matchBack")?.addEventListener("click", closeModal);
     document.querySelector("#matchRegistrar")?.addEventListener("click", () => {
     // ======= PASO 0: TELÉFONO =======
