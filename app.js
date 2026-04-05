@@ -3297,4 +3297,8 @@ document.querySelector("#auctionBtn")?.addEventListener("click", () => {
   renderAuction();
 });
 
+document.querySelector("#aboutBtn")?.addEventListener("click", () => {
+  showView("about");
+});
+
 })();
