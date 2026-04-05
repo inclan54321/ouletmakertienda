@@ -101,7 +101,7 @@ button.secondary{
 
 .home-btn{
   position: absolute;
-  top: 20px;
+  top: 200px;
   left: 14px;
   z-index: 1000;
   border: none;
