@@ -2394,6 +2394,9 @@ function openMakerDetail(makerId) {
 document.querySelector("#btnAbout")?.addEventListener("click", () => {
   showView("about");
 });
+document.querySelector("#aboutBtn")?.addEventListener("click", () => {
+  showView("about");
+});
 
 document.querySelector("#btnWebDesign")?.addEventListener("click", () => {
   openModal({
