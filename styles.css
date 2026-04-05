@@ -104,13 +104,16 @@ button.secondary{
   top: 14px;
   left: 14px;
   z-index: 1000;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(255,255,255,0.08);
-  color: var(--text);
-  border-radius: 14px;
-  padding: 10px 12px;
+  border: none;
+  background: none;
+  padding: 0;
   cursor: pointer;
-  backdrop-filter: blur(10px);
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 0;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .fav-btn{
