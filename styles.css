@@ -859,3 +859,38 @@ color: #ffffff;
 .about-btn:hover {
   background: rgba(255,255,255,0.18);
 }
+
+/* BOTONES BARRA MENU */
+.menu-botones-wrap {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.menu-barra-btn {
+  width: 5cm;
+  padding: 12px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s;
+  text-align: center;
+}
+
+.menu-barra-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.menu-barra-btn--grande {
+  width: 7cm;
+  font-size: 1.1rem;
+  padding: 14px 0;
+}
