@@ -736,3 +736,12 @@ input, textarea, select{
   backdrop-filter: blur(10px);
 }
 .about-btn:hover{ background: rgba(255,255,255,0.18); }
+
+#viewAbout:not(.hidden){
+  width: 100vw;
+  height: 100vh;
+  background-image: url("./assets/fondo.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

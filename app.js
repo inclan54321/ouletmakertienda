@@ -3301,4 +3301,18 @@ document.querySelector("#aboutBtn")?.addEventListener("click", () => {
   showView("about");
 });
 
+document.querySelector("#novedadesBtn")?.addEventListener("click", () => {
+  document.getElementById("modalNovedades")?.classList.remove("hidden");
+});
+
+document.querySelector("#catBtnMenu")?.addEventListener("click", () => {
+  openCatalogNoticeOncePerLoad();
+  showView("catalog");
+  state.catalog.categoryId = null;
+  state.catalog.subcategoryId = null;
+  state.catalog.mode = "categories";
+  state.catalog.page = 1;
+  renderCatalog();
+});
+
 })();
