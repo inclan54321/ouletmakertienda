@@ -844,8 +844,8 @@ color: #ffffff;
 
 .about-btn {
   position: absolute;
-  top: calc(-100px - 3cm);
-  left: calc(170px + 4cm + 100px - 3cm + 100px);
+  top: -100px;
+  left: 370px;
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.16);
   background: rgba(255,255,255,0.08);
