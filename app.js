@@ -554,7 +554,7 @@ const views = {
   catalog: document.querySelector("#viewCatalog"),
   auction: document.querySelector("#viewAuction"),
   maker: document.querySelector("#viewMaker"),
-about: document.querySelector("#viewAbout"),
+  about: document.querySelector("#viewAbout"),
  
 };
 
